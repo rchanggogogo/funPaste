@@ -4,9 +4,11 @@ import SwiftUI
 @MainActor
 public final class QuickPanelController {
     public static let hidesOnDeactivate = false
+    public static let usesNonactivatingPanel = false
 
     private let store: ClipboardStore
     private var panel: NSPanel?
+    private var previousApplication: NSRunningApplication?
 
     public init(store: ClipboardStore) {
         self.store = store
@@ -21,6 +23,11 @@ public final class QuickPanelController {
     }
 
     public func show() {
+        let frontmostApplication = NSWorkspace.shared.frontmostApplication
+        if frontmostApplication?.processIdentifier != ProcessInfo.processInfo.processIdentifier {
+            previousApplication = frontmostApplication
+        }
+
         let panel = makePanelIfNeeded()
         let panelSize = NSSize(width: 420, height: 640)
         panel.setContentSize(panelSize)
@@ -37,6 +44,12 @@ public final class QuickPanelController {
         }
 
         panel.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    public func dismiss() {
+        panel?.orderOut(nil)
+        previousApplication?.activate()
     }
 
     private func makePanelIfNeeded() -> NSPanel {
@@ -44,7 +57,7 @@ public final class QuickPanelController {
 
         let panel = KeyablePanel(
             contentRect: NSRect(x: 0, y: 0, width: 420, height: 640),
-            styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
+            styleMask: [.borderless, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
@@ -58,6 +71,8 @@ public final class QuickPanelController {
         panel.contentView = NSHostingView(
             rootView: RibbonDeckView(store: store, compact: true, dismissPanel: { [weak panel] in
                 panel?.orderOut(nil)
+            }, prepareForPaste: { [weak self] in
+                self?.dismiss()
             })
         )
         self.panel = panel
