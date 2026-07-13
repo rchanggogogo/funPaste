@@ -36,13 +36,13 @@ public final class QuickPanelController {
             )
         }
 
-        panel.orderFrontRegardless()
+        panel.makeKeyAndOrderFront(nil)
     }
 
     private func makePanelIfNeeded() -> NSPanel {
         if let panel { return panel }
 
-        let panel = NSPanel(
+        let panel = KeyablePanel(
             contentRect: NSRect(x: 0, y: 0, width: 420, height: 640),
             styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
             backing: .buffered,
@@ -62,5 +62,13 @@ public final class QuickPanelController {
         )
         self.panel = panel
         return panel
+    }
+}
+
+private final class KeyablePanel: NSPanel {
+    override var canBecomeKey: Bool { true }
+
+    override func cancelOperation(_ sender: Any?) {
+        orderOut(nil)
     }
 }

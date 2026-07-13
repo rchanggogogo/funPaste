@@ -102,3 +102,11 @@ expect(
 )
 
 print("通过：侧栏显示时不会立即收起")
+
+expect(
+    SelectionNavigator.nextIndex(current: 0, count: 3) == 1 &&
+        SelectionNavigator.previousIndex(current: 0, count: 3) == 2,
+    "方向键必须在列表首尾循环选择历史项"
+)
+
+print("通过：历史方向键选择")

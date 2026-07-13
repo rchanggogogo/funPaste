@@ -50,6 +50,17 @@ public struct RibbonDeckView: View {
         .onAppear { selectedID = visibleClips.first?.id }
         .onChange(of: category) { _, _ in selectedID = visibleClips.first?.id }
         .onExitCommand { dismissPanel?() }
+        .onMoveCommand { direction in
+            switch direction {
+            case .up: moveSelection(forward: false)
+            case .down: moveSelection(forward: true)
+            default: break
+            }
+        }
+        .onKeyPress(.return) {
+            pasteSelectedClip()
+            return .handled
+        }
     }
 
     private var header: some View {
@@ -65,6 +76,7 @@ public struct RibbonDeckView: View {
                 }
                 .buttonStyle(.plain)
                 .background(.white.opacity(0.1), in: Circle())
+                .pointingCursor()
                 .accessibilityLabel("关闭 funPaste")
             }
         }
@@ -87,6 +99,7 @@ public struct RibbonDeckView: View {
                             .background(category == item ? FunPasteTheme.accent : .clear, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                     }
                     .buttonStyle(.plain)
+                    .pointingCursor()
                     .accessibilityLabel("切换到\(item.label)")
                 }
             }
@@ -125,6 +138,7 @@ public struct RibbonDeckView: View {
                             .contentShape(Rectangle())
                             .onTapGesture { select(clip) }
                             .onTapGesture(count: 2) { pasteAndDismiss(clip) }
+                            .pointingCursor()
                             .accessibilityAddTraits(selectedID == clip.id ? .isSelected : [])
                     }
                 }
@@ -141,16 +155,18 @@ public struct RibbonDeckView: View {
                 Spacer()
                 Button { isEditingPrompt = false } label: { Image(systemName: "xmark") }
                     .buttonStyle(.plain)
+                    .pointingCursor()
                     .accessibilityLabel("关闭 Prompt 编辑")
             }
             TextField("功能描述", text: $featureDescription).textFieldStyle(.roundedBorder)
             TextField("技术约束", text: $technicalConstraint).textFieldStyle(.roundedBorder)
             HStack {
-                Button("复制") { copyPreparedPrompt() }.buttonStyle(.bordered)
+                Button("复制") { copyPreparedPrompt() }.buttonStyle(.bordered).pointingCursor()
                 Spacer()
                 Button("生成并粘贴") { pastePreparedPrompt() }
                     .buttonStyle(.borderedProminent)
                     .tint(FunPasteTheme.accent)
+                    .pointingCursor()
             }
         }
         .padding(13)
@@ -188,6 +204,24 @@ public struct RibbonDeckView: View {
     private func pasteAndDismiss(_ clip: Clip) {
         store.paste(clip)
         dismissPanel?()
+    }
+
+    private func moveSelection(forward: Bool) {
+        let currentIndex = visibleClips.firstIndex { $0.id == selectedID }
+        let nextIndex = forward
+            ? SelectionNavigator.nextIndex(current: currentIndex, count: visibleClips.count)
+            : SelectionNavigator.previousIndex(current: currentIndex, count: visibleClips.count)
+        guard let nextIndex else { return }
+        selectedID = visibleClips[nextIndex].id
+    }
+
+    private func pasteSelectedClip() {
+        guard let selectedClip else { return }
+        if selectedClip.category == .prompt {
+            isEditingPrompt = true
+        } else {
+            pasteAndDismiss(selectedClip)
+        }
     }
 
     private var selectedClip: Clip? {
@@ -279,6 +313,14 @@ private extension Clip {
         case .pinned: "pin.fill"
         case .image: "photo"
         case .file: "doc.text"
+        }
+    }
+}
+
+private extension View {
+    func pointingCursor() -> some View {
+        onHover { isHovering in
+            (isHovering ? NSCursor.pointingHand : NSCursor.arrow).set()
         }
     }
 }
