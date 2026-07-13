@@ -73,6 +73,13 @@ public final class ClipboardStore: ObservableObject {
         return item
     }
 
+    @discardableResult
+    public func unpin(_ clip: Clip) -> Bool {
+        let didUnpin = library.unpin(clip)
+        if didUnpin { persistLibrary() }
+        return didUnpin
+    }
+
     public func isPinned(_ clip: Clip) -> Bool {
         library.items.contains { $0.category == .pinned && $0.content == clip.content }
     }
