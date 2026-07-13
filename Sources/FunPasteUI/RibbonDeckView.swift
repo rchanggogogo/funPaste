@@ -10,6 +10,12 @@ public struct RibbonDeckView: View {
     @State private var isEditingPrompt = false
     @State private var featureDescription = ""
     @State private var technicalConstraint = ""
+    @State private var isShowingLibraryEditor = false
+    @State private var libraryEditorCategory: ClipCategory = .prompt
+    @State private var editingLibraryItem: Clip?
+    @State private var libraryTitle = ""
+    @State private var libraryContent = ""
+    @State private var itemPendingDeletion: Clip?
 
     private let compact: Bool
     private let dismissPanel: (() -> Void)?
@@ -42,6 +48,7 @@ public struct RibbonDeckView: View {
                 headline
                 historyList
                 if isEditingPrompt { promptEditor }
+                if isShowingLibraryEditor { libraryEditor }
                 footer
             }
             .padding(18)
@@ -69,6 +76,19 @@ public struct RibbonDeckView: View {
         .onKeyPress(.return) {
             pasteSelectedClip()
             return .handled
+        }
+        .confirmationDialog(
+            "删除后无法恢复",
+            isPresented: Binding(
+                get: { itemPendingDeletion != nil },
+                set: { if !$0 { itemPendingDeletion = nil } }
+            ),
+            titleVisibility: .visible
+        ) {
+            Button("删除", role: .destructive) { deletePendingItem() }
+            Button("取消", role: .cancel) { itemPendingDeletion = nil }
+        } message: {
+            Text("确定删除“\(itemPendingDeletion?.title ?? "")”吗？")
         }
     }
 
@@ -128,6 +148,20 @@ public struct RibbonDeckView: View {
                     .font(.title3.bold())
             }
             Spacer()
+            if category == .prompt || category == .pinned {
+                Button {
+                    startCreatingLibraryItem(category: category)
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.caption.weight(.bold))
+                        .frame(width: 28, height: 28)
+                }
+                .buttonStyle(.plain)
+                .background(FunPasteTheme.accent, in: Circle())
+                .foregroundStyle(FunPasteTheme.ink)
+                .pointingCursor()
+                .accessibilityLabel(category == .prompt ? "新建 Prompt" : "新建收藏")
+            }
             Text("\(visibleClips.count)")
                 .font(.caption.weight(.bold))
                 .padding(8)
@@ -144,7 +178,15 @@ public struct RibbonDeckView: View {
                             .frame(maxWidth: .infinity, minHeight: 180)
                     } else {
                         ForEach(visibleClips) { clip in
-                            ClipRow(clip: clip, isSelected: selectedID == clip.id)
+                            ClipRow(
+                                clip: clip,
+                                isSelected: selectedID == clip.id,
+                                isPinned: store.isPinned(clip),
+                                canPin: clip.category == .recent || clip.category == .image,
+                                onPin: { pin(clip) },
+                                onEdit: { startEditingLibraryItem(clip) },
+                                onDelete: { itemPendingDeletion = clip }
+                            )
                                 .id(clip.id)
                                 .contentShape(Rectangle())
                                 .onTapGesture { select(clip) }
@@ -192,6 +234,56 @@ public struct RibbonDeckView: View {
         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(FunPasteTheme.accent.opacity(0.42)))
     }
 
+    private var libraryEditor: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(editingLibraryItem == nil ? (libraryEditorCategory == .prompt ? "新建 Prompt" : "新建收藏") : "编辑\(libraryEditorCategory == .prompt ? " Prompt" : "收藏")")
+                        .font(.headline)
+                    if libraryEditorCategory == .prompt {
+                        Text("可使用 {{功能描述}}、{{技术约束}} 作为变量")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+                Button { closeLibraryEditor() } label: { Image(systemName: "xmark") }
+                    .buttonStyle(.plain)
+                    .pointingCursor()
+                    .accessibilityLabel("关闭内容编辑")
+            }
+            TextField(
+                libraryEditorCategory == .prompt ? "标题，例如：实现一个新功能" : "标题，例如：常用收件地址",
+                text: $libraryTitle
+            )
+            .textFieldStyle(.roundedBorder)
+            TextEditor(text: $libraryContent)
+                .font(.body)
+                .frame(minHeight: 88, maxHeight: 110)
+                .padding(6)
+                .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).stroke(.white.opacity(0.12)))
+            if libraryContent.isEmpty {
+                Text(libraryEditorCategory == .prompt ? "示例：请帮我完成……" : "填写需要长期保留的内容")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+            HStack {
+                Button("取消") { closeLibraryEditor() }
+                    .buttonStyle(.bordered)
+                    .pointingCursor()
+                Spacer()
+                Button(editingLibraryItem == nil ? "创建" : "保存") { saveLibraryEditor() }
+                    .buttonStyle(.borderedProminent)
+                    .tint(FunPasteTheme.accent)
+                    .pointingCursor()
+            }
+        }
+        .padding(13)
+        .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(FunPasteTheme.accent.opacity(0.42)))
+    }
+
     private var footer: some View {
         Label {
             TextField("搜索剪贴历史", text: $searchText)
@@ -220,6 +312,64 @@ public struct RibbonDeckView: View {
 
     private func pasteAndDismiss(_ clip: Clip) {
         store.paste(clip, prepareForPaste: prepareForPaste ?? {})
+    }
+
+    private func pin(_ clip: Clip) {
+        let item = store.pin(clip)
+        store.showFeedback(store.isPinned(clip) ? "已收藏「\(item.title)」" : "已更新收藏")
+    }
+
+    private func startCreatingLibraryItem(category: ClipCategory) {
+        libraryEditorCategory = category
+        editingLibraryItem = nil
+        libraryTitle = ""
+        libraryContent = ""
+        isEditingPrompt = false
+        isShowingLibraryEditor = true
+    }
+
+    private func startEditingLibraryItem(_ item: Clip) {
+        libraryEditorCategory = item.category
+        editingLibraryItem = item
+        libraryTitle = item.title
+        libraryContent = item.content
+        isEditingPrompt = false
+        isShowingLibraryEditor = true
+    }
+
+    private func closeLibraryEditor() {
+        isShowingLibraryEditor = false
+        editingLibraryItem = nil
+        libraryTitle = ""
+        libraryContent = ""
+    }
+
+    private func saveLibraryEditor() {
+        let title = libraryTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        let content = libraryContent.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty, !content.isEmpty else {
+            store.showFeedback("标题和内容都不能为空")
+            return
+        }
+
+        let savedItem: Clip
+        if let item = editingLibraryItem {
+            store.updateLibraryItem(id: item.id, title: title, content: content)
+            savedItem = Clip(id: item.id, category: item.category, title: title, content: content, source: item.source, imageData: item.imageData)
+        } else {
+            savedItem = store.createLibraryItem(category: libraryEditorCategory, title: title, content: content)
+        }
+        selectedID = savedItem.id
+        closeLibraryEditor()
+        store.showFeedback("已保存「\(savedItem.title)」")
+    }
+
+    private func deletePendingItem() {
+        guard let item = itemPendingDeletion else { return }
+        store.deleteLibraryItem(id: item.id)
+        if selectedID == item.id { selectedID = visibleClips.first?.id }
+        itemPendingDeletion = nil
+        store.showFeedback("已删除「\(item.title)」")
     }
 
     private func moveSelection(forward: Bool) {
@@ -288,6 +438,11 @@ public struct RibbonDeckView: View {
 private struct ClipRow: View {
     let clip: Clip
     let isSelected: Bool
+    let isPinned: Bool
+    let canPin: Bool
+    let onPin: () -> Void
+    let onEdit: () -> Void
+    let onDelete: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
@@ -296,6 +451,28 @@ private struct ClipRow: View {
                 HStack {
                     Text(clip.title).font(.subheadline.weight(.semibold)).lineLimit(1)
                     Spacer(minLength: 8)
+                    if canPin {
+                        Button(action: onPin) {
+                            Image(systemName: isPinned ? "star.fill" : "star")
+                                .foregroundStyle(isPinned ? FunPasteTheme.accent : .secondary)
+                        }
+                        .buttonStyle(.plain)
+                        .pointingCursor()
+                        .accessibilityLabel(isPinned ? "已收藏" : "收藏")
+                    }
+                    if clip.category == .prompt || clip.category == .pinned {
+                        Menu {
+                            Button("编辑", action: onEdit)
+                            Button("删除", role: .destructive, action: onDelete)
+                        } label: {
+                            Image(systemName: "ellipsis")
+                                .foregroundStyle(.secondary)
+                                .frame(width: 20, height: 20)
+                        }
+                        .menuStyle(.borderlessButton)
+                        .pointingCursor()
+                        .accessibilityLabel("管理\(clip.category == .prompt ? "Prompt" : "收藏")")
+                    }
                     Text(clip.category.label).font(.caption2).foregroundStyle(.secondary)
                 }
                 Text(clip.content)
