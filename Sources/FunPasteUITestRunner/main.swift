@@ -110,3 +110,10 @@ expect(
 )
 
 print("通过：历史方向键选择")
+
+expect(
+    QuickPanelController.usesNonactivatingPanel == false,
+    "需要键盘输入和 SwiftUI 按钮交互的侧栏不能使用非激活窗口"
+)
+
+print("通过：侧栏允许完整交互")

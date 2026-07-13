@@ -55,13 +55,22 @@ public final class ClipboardStore: ObservableObject {
         }
     }
 
-    public func paste(_ clip: Clip) {
+    public func paste(_ clip: Clip, prepareForPaste: @escaping @MainActor () -> Void = {}) {
         copy(clip)
         guard CGPreflightPostEventAccess() else {
+            CGRequestPostEventAccess()
             showFeedback("已复制，请手动粘贴")
             return
         }
 
+        prepareForPaste()
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(180))
+            self?.postPasteEvent(for: clip)
+        }
+    }
+
+    private func postPasteEvent(for clip: Clip) {
         let source = CGEventSource(stateID: .combinedSessionState)
         let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: true)
         let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: false)

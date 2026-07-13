@@ -13,11 +13,13 @@ public struct RibbonDeckView: View {
 
     private let compact: Bool
     private let dismissPanel: (() -> Void)?
+    private let prepareForPaste: (@MainActor @Sendable () -> Void)?
 
-    public init(store: ClipboardStore, compact: Bool = false, dismissPanel: (() -> Void)? = nil) {
+    public init(store: ClipboardStore, compact: Bool = false, dismissPanel: (() -> Void)? = nil, prepareForPaste: (@MainActor @Sendable () -> Void)? = nil) {
         self.store = store
         self.compact = compact
         self.dismissPanel = dismissPanel
+        self.prepareForPaste = prepareForPaste
     }
 
     private var visibleClips: [Clip] {
@@ -197,13 +199,11 @@ public struct RibbonDeckView: View {
 
     private func pastePreparedPrompt() {
         guard let prompt = selectedClip else { return }
-        store.paste(preparedPrompt(from: prompt))
-        dismissPanel?()
+        store.paste(preparedPrompt(from: prompt), prepareForPaste: prepareForPaste ?? {})
     }
 
     private func pasteAndDismiss(_ clip: Clip) {
-        store.paste(clip)
-        dismissPanel?()
+        store.paste(clip, prepareForPaste: prepareForPaste ?? {})
     }
 
     private func moveSelection(forward: Bool) {
