@@ -95,3 +95,10 @@ expect(
 )
 
 print("通过：图片剪贴历史")
+
+expect(
+    QuickPanelController.hidesOnDeactivate == false,
+    "非激活侧栏不能在显示后立刻因失焦自动隐藏"
+)
+
+print("通过：侧栏显示时不会立即收起")

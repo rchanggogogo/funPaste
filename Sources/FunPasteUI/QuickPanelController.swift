@@ -3,6 +3,8 @@ import SwiftUI
 
 @MainActor
 public final class QuickPanelController {
+    public static let hidesOnDeactivate = false
+
     private let store: ClipboardStore
     private var panel: NSPanel?
 
@@ -48,7 +50,7 @@ public final class QuickPanelController {
         )
         panel.level = .floating
         panel.isFloatingPanel = true
-        panel.hidesOnDeactivate = true
+        panel.hidesOnDeactivate = Self.hidesOnDeactivate
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = true
