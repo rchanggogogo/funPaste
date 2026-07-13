@@ -5,33 +5,36 @@ import Combine
 @MainActor
 public final class ClipboardStore: ObservableObject {
     @Published public private(set) var history: ClipHistory
+    @Published public private(set) var library: ContentLibrary
     @Published public private(set) var isPaused: Bool
     @Published public private(set) var feedbackMessage: String?
 
     private let defaults: UserDefaults
     private let historyKey = "funPaste.history"
+    private let libraryKey = "funPaste.library"
     private let pauseKey = "funPaste.isPaused"
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         self.history = Self.loadHistory(from: defaults) ?? ClipHistory()
+        self.library = Self.loadLibrary(from: defaults) ?? .seeded
         self.isPaused = defaults.object(forKey: pauseKey) as? Bool ?? false
     }
 
     public var clips: [Clip] {
-        Clip.presentationItems(history: history.clips)
+        Clip.presentationItems(history: history.clips, library: library)
     }
 
     public func recordClipboardText(_ content: String) {
         guard !isPaused else { return }
         history.record(content)
-        persist()
+        persistHistory()
     }
 
     public func recordClipboardImage(_ data: Data) {
         guard !isPaused else { return }
         history.recordImage(data)
-        persist()
+        persistHistory()
     }
 
     public func togglePause() {
@@ -42,8 +45,36 @@ public final class ClipboardStore: ObservableObject {
 
     public func clearHistory() {
         history = ClipHistory(maximumCount: history.maximumCount)
-        persist()
+        persistHistory()
         showFeedback("已清空剪贴历史")
+    }
+
+    @discardableResult
+    public func createLibraryItem(category: ClipCategory, title: String, content: String) -> Clip {
+        let item = library.create(category: category, title: title, content: content)
+        persistLibrary()
+        return item
+    }
+
+    public func updateLibraryItem(id: Clip.ID, title: String, content: String) {
+        library.update(id: id, title: title, content: content)
+        persistLibrary()
+    }
+
+    public func deleteLibraryItem(id: Clip.ID) {
+        library.delete(id: id)
+        persistLibrary()
+    }
+
+    @discardableResult
+    public func pin(_ clip: Clip) -> Clip {
+        let item = library.pin(clip)
+        persistLibrary()
+        return item
+    }
+
+    public func isPinned(_ clip: Clip) -> Bool {
+        library.items.contains { $0.category == .pinned && $0.content == clip.content }
     }
 
     public func copy(_ clip: Clip) {
@@ -89,13 +120,23 @@ public final class ClipboardStore: ObservableObject {
         }
     }
 
-    private func persist() {
+    private func persistHistory() {
         guard let data = try? JSONEncoder().encode(history) else { return }
         defaults.set(data, forKey: historyKey)
+    }
+
+    private func persistLibrary() {
+        guard let data = try? JSONEncoder().encode(library) else { return }
+        defaults.set(data, forKey: libraryKey)
     }
 
     private static func loadHistory(from defaults: UserDefaults) -> ClipHistory? {
         guard let data = defaults.data(forKey: "funPaste.history") else { return nil }
         return try? JSONDecoder().decode(ClipHistory.self, from: data)
+    }
+
+    private static func loadLibrary(from defaults: UserDefaults) -> ContentLibrary? {
+        guard let data = defaults.data(forKey: "funPaste.library") else { return nil }
+        return try? JSONDecoder().decode(ContentLibrary.self, from: data)
     }
 }

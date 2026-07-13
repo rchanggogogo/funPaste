@@ -185,3 +185,23 @@ expect(
 )
 
 print("通过：内容库 CRUD 与一键收藏")
+
+let librarySuiteName = "funPaste.tests.library"
+let libraryDefaults = UserDefaults(suiteName: librarySuiteName)!
+libraryDefaults.removePersistentDomain(forName: librarySuiteName)
+let libraryStore = ClipboardStore(defaults: libraryDefaults)
+let persistedPrompt = libraryStore.createLibraryItem(category: .prompt, title: "持久化 Prompt", content: "重启后仍存在")
+let reloadedLibraryStore = ClipboardStore(defaults: libraryDefaults)
+expect(
+    reloadedLibraryStore.library.items.contains { $0.id == persistedPrompt.id },
+    "新建 Prompt 必须在重新加载 Store 后保留"
+)
+
+let persistedPin = libraryStore.pin(recentClip)
+let reloadedAfterPin = ClipboardStore(defaults: libraryDefaults)
+expect(
+    reloadedAfterPin.library.items.contains { $0.id == persistedPin.id },
+    "一键收藏必须在重新加载 Store 后保留"
+)
+
+print("通过：内容库本地持久化")
