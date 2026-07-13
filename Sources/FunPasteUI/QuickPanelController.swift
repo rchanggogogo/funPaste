@@ -99,7 +99,10 @@ private final class KeyablePanel: NSPanel {
     var onKeyCommand: ((PanelKeyCommand) -> Void)?
 
     override func keyDown(with event: NSEvent) {
-        if let command = PanelKeyCommand(keyCode: event.keyCode) {
+        if let command = PanelKeyCommand(
+            keyCode: event.keyCode,
+            shiftPressed: event.modifierFlags.contains(.shift)
+        ) {
             onKeyCommand?(command)
         } else {
             super.keyDown(with: event)
