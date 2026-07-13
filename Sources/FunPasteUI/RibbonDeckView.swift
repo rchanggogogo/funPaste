@@ -2,20 +2,26 @@ import SwiftUI
 
 public struct RibbonDeckView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ObservedObject private var store: ClipboardStore
     @State private var category: ClipCategory = .recent
-    @State private var selectedID: Clip.ID? = Clip.demo.first?.id
+    @State private var selectedID: Clip.ID?
     @State private var searchText = ""
     @State private var isEditingPrompt = false
     @State private var featureDescription = ""
     @State private var technicalConstraint = ""
     @State private var toastMessage: String?
 
-    public init() {}
+    private let compact: Bool
+
+    public init(store: ClipboardStore, compact: Bool = false) {
+        self.store = store
+        self.compact = compact
+    }
 
     private var visibleClips: [Clip] {
         let categories: Set<ClipCategory> = category == .recent ? [.recent, .prompt] : [category]
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        return Clip.demo.filter { clip in
+        return store.clips.filter { clip in
             categories.contains(clip.category) && (query.isEmpty || clip.title.localizedCaseInsensitiveContains(query) || clip.content.localizedCaseInsensitiveContains(query))
         }
     }
@@ -38,7 +44,7 @@ public struct RibbonDeckView: View {
             .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(.white.opacity(0.14)))
             .padding()
 
-            if let toastMessage {
+            if let toastMessage = store.feedbackMessage ?? toastMessage {
                 VStack {
                     Spacer()
                     Text(toastMessage)
@@ -54,6 +60,9 @@ public struct RibbonDeckView: View {
         .preferredColorScheme(.dark)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: category)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: selectedID)
+        .onAppear {
+            selectedID = visibleClips.first?.id
+        }
     }
 
     private var header: some View {
@@ -125,6 +134,7 @@ public struct RibbonDeckView: View {
                     ForEach(visibleClips) { clip in
                         ClipCard(clip: clip, isSelected: selectedID == clip.id)
                             .onTapGesture { select(clip) }
+                            .onTapGesture(count: 2) { store.paste(clip) }
                             .accessibilityAddTraits(selectedID == clip.id ? .isSelected : [])
                     }
                 }
@@ -132,7 +142,7 @@ public struct RibbonDeckView: View {
             .padding(.horizontal, 7)
             .padding(.vertical, 12)
         }
-        .frame(minHeight: 225)
+        .frame(minHeight: compact ? 205 : 225)
     }
 
     private var promptEditor: some View {
@@ -152,12 +162,12 @@ public struct RibbonDeckView: View {
             TextField("技术约束，例如：沿用 SwiftUI", text: $technicalConstraint)
                 .textFieldStyle(.roundedBorder)
             HStack {
-                Button("仅复制") { showToast("Prompt 已复制到剪贴板") }
+                Button("仅复制") { copyPreparedPrompt() }
                     .buttonStyle(.bordered)
                 Spacer()
                 Button("生成并粘贴") {
                     isEditingPrompt = false
-                    showToast("Prompt 已生成并准备粘贴")
+                    pastePreparedPrompt()
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(FunPasteTheme.accent)
@@ -187,6 +197,34 @@ public struct RibbonDeckView: View {
     private func select(_ clip: Clip) {
         selectedID = clip.id
         if clip.category == .prompt { isEditingPrompt = true }
+    }
+
+    private func copyPreparedPrompt() {
+        guard let prompt = selectedClip else { return }
+        store.copy(preparedPrompt(from: prompt))
+        store.showFeedback("Prompt 已复制到剪贴板")
+    }
+
+    private func pastePreparedPrompt() {
+        guard let prompt = selectedClip else { return }
+        store.paste(preparedPrompt(from: prompt))
+        isEditingPrompt = false
+    }
+
+    private var selectedClip: Clip? {
+        store.clips.first { $0.id == selectedID }
+    }
+
+    private func preparedPrompt(from prompt: Clip) -> Clip {
+        Clip(
+            id: prompt.id,
+            category: prompt.category,
+            title: prompt.title,
+            content: prompt.content
+                .replacingOccurrences(of: "{{功能描述}}", with: featureDescription.isEmpty ? "待补充功能" : featureDescription)
+                .replacingOccurrences(of: "{{技术约束}}", with: technicalConstraint.isEmpty ? "遵循现有项目风格" : technicalConstraint),
+            source: prompt.source
+        )
     }
 
     private func showToast(_ message: String) {

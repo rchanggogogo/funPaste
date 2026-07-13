@@ -1,6 +1,6 @@
 import Foundation
 
-public enum ClipCategory: String, CaseIterable, Equatable, Sendable {
+public enum ClipCategory: String, CaseIterable, Equatable, Sendable, Codable {
     case recent
     case prompt
     case pinned
@@ -16,7 +16,7 @@ public enum ClipCategory: String, CaseIterable, Equatable, Sendable {
     ]
 }
 
-public struct Clip: Identifiable, Equatable, Sendable {
+public struct Clip: Identifiable, Equatable, Sendable, Codable {
     public let id: String
     public let category: ClipCategory
     public let title: String
@@ -89,4 +89,10 @@ public struct Clip: Identifiable, Equatable, Sendable {
             source: "Finder"
         )
     ]
+
+    public static func presentationItems(history: [Clip]) -> [Clip] {
+        guard !history.isEmpty else { return demo }
+        let reusableItems = demo.filter { $0.category != .recent }
+        return history + reusableItems
+    }
 }
