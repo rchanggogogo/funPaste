@@ -198,10 +198,12 @@ expect(
 )
 
 let persistedPin = libraryStore.pin(recentClip)
+let repeatedPersistedPin = libraryStore.pin(recentClip)
 let reloadedAfterPin = ClipboardStore(defaults: libraryDefaults)
 expect(
-    reloadedAfterPin.library.items.contains { $0.id == persistedPin.id },
-    "一键收藏必须在重新加载 Store 后保留"
+    persistedPin.id == repeatedPersistedPin.id &&
+        reloadedAfterPin.library.items.filter { $0.category == .pinned && $0.content == recentClip.content }.count == 1,
+    "Store 一键收藏必须持久化且不得重复"
 )
 
 print("通过：内容库本地持久化")
