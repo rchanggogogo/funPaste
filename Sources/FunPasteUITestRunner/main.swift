@@ -97,11 +97,11 @@ expect(
 print("通过：图片剪贴历史")
 
 expect(
-    QuickPanelController.hidesOnDeactivate == false,
-    "非激活侧栏不能在显示后立刻因失焦自动隐藏"
+    QuickPanelController.hidesOnDeactivate == true,
+    "点击其他区域导致应用失焦时，侧栏必须自动收起"
 )
 
-print("通过：侧栏显示时不会立即收起")
+print("通过：侧栏失焦时自动收起")
 
 expect(
     SelectionNavigator.nextIndex(current: 0, count: 3) == 1 &&
