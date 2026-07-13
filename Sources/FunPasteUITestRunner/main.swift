@@ -142,3 +142,10 @@ expect(
 )
 
 print("通过：分类 Tab 循环")
+
+expect(
+    QuickPanelController.defaultCategoryOnOpen == .recent,
+    "每次打开侧栏必须先展示最近复制"
+)
+
+print("通过：打开侧栏默认最近复制")

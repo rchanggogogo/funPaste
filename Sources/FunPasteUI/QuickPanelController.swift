@@ -6,6 +6,7 @@ public final class QuickPanelController {
     public static let hidesOnDeactivate = true
     public static let usesNonactivatingPanel = false
     public static let requiresApplicationActivation = true
+    public static let defaultCategoryOnOpen: ClipCategory = .recent
 
     private let store: ClipboardStore
     private var panel: NSPanel?
@@ -49,6 +50,7 @@ public final class QuickPanelController {
         }
         panel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+        NotificationCenter.default.post(name: .funPastePanelDidShow, object: nil)
     }
 
     public func dismiss() {

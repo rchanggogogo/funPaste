@@ -51,6 +51,9 @@ public struct RibbonDeckView: View {
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: category)
         .onAppear { selectedID = visibleClips.first?.id }
         .onChange(of: category) { _, _ in selectedID = visibleClips.first?.id }
+        .onReceive(NotificationCenter.default.publisher(for: .funPastePanelDidShow)) { _ in
+            resetForOpening()
+        }
         .onExitCommand { dismissPanel?() }
         .onReceive(NotificationCenter.default.publisher(for: .funPastePanelKeyCommand)) { notification in
             guard let command = notification.object as? PanelKeyCommand else { return }
@@ -256,6 +259,13 @@ public struct RibbonDeckView: View {
             searchText = ""
             isEditingPrompt = false
         }
+    }
+
+    private func resetForOpening() {
+        category = QuickPanelController.defaultCategoryOnOpen
+        searchText = ""
+        isEditingPrompt = false
+        selectedID = store.clips.first { [.recent, .prompt, .image].contains($0.category) }?.id
     }
 
     private var selectedClip: Clip? {
