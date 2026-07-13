@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>funPaste · 丝带卡组</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="stage">
+      <div class="ambient ambient-one"></div>
+      <div class="ambient ambient-two"></div>
+
+      <section class="context-window" aria-label="当前应用背景示意">
+        <header class="context-header">
+          <span class="traffic"><i></i><i></i><i></i></span>
+          <span class="context-title">设计说明.md</span>
+          <span class="context-action">•••</span>
+        </header>
+        <div class="context-lines">
+          <span class="line wide"></span><span class="line medium"></span><span class="line short"></span>
+          <span class="line wide"></span><span class="line long"></span><span class="line medium"></span>
+        </div>
+      </section>
+
+      <section class="deck-shell" aria-label="funPaste 快捷粘贴面板">
+        <header class="deck-header">
+          <div class="brand"><span class="brand-mark">f</span><span>funPaste</span></div>
+          <div class="status"><span class="status-dot"></span>本地私密保存</div>
+          <button class="icon-button" type="button" aria-label="更多设置">•••</button>
+        </header>
+
+        <nav class="ribbon" aria-label="内容分类">
+          <button class="ribbon-item active" data-category="recent" type="button">最近复制</button>
+          <button class="ribbon-item" data-category="prompt" type="button">Prompt</button>
+          <button class="ribbon-item" data-category="pinned" type="button">收藏</button>
+          <button class="ribbon-item" data-category="image" type="button">图片</button>
+          <button class="ribbon-item" data-category="file" type="button">文件</button>
+          <span class="ribbon-hint">按住可调整顺序</span>
+        </nav>
+
+        <div class="deck-intro">
+          <div>
+            <p class="eyebrow" id="category-label">最近复制</p>
+            <h1 id="deck-title">刚复制，也最应该先看到</h1>
+          </div>
+          <span class="count-pill" id="count-pill">5 个项目</span>
+        </div>
+
+        <div class="deck-viewport">
+          <div class="clip-deck" id="clip-deck" role="list"></div>
+        </div>
+
+        <section class="prompt-editor" id="prompt-editor" hidden aria-label="Prompt 变量编辑">
+          <div class="prompt-editor-heading">
+            <div><p class="eyebrow">准备粘贴</p><h2>补全这个 Prompt</h2></div>
+            <button class="icon-button" id="close-editor" type="button" aria-label="关闭变量编辑">×</button>
+          </div>
+          <label>功能描述<input id="feature-input" placeholder="例如：增加收藏分组" /></label>
+          <label>技术约束<input id="constraint-input" placeholder="例如：沿用 SwiftUI" /></label>
+          <div class="prompt-actions">
+            <button class="secondary-action" id="copy-prompt" type="button">仅复制</button>
+            <button class="primary-action" id="paste-prompt" type="button">生成并粘贴</button>
+          </div>
+        </section>
+
+        <footer class="deck-footer">
+          <label class="search-box"><span>⌕</span><input id="search-input" placeholder="直接输入即可搜索" aria-label="搜索当前分类" /></label>
+          <div class="keyboard-hints"><kbd>↑↓</kbd> 选择 <kbd>↵</kbd> 粘贴 <kbd>⇧↵</kbd> 纯文本 <kbd>⌘1–9</kbd> 快速选择</div>
+        </footer>
+      </section>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
