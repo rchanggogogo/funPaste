@@ -149,3 +149,39 @@ expect(
 )
 
 print("通过：打开侧栏默认最近复制")
+
+var library = ContentLibrary.seeded
+expect(
+    library.items.contains { $0.id == "development-prompt" } &&
+        library.items.contains { $0.id == "pinned-address" },
+    "首次内容库必须包含当前内置 Prompt 与收藏"
+)
+
+let createdPrompt = library.create(category: .prompt, title: "测试 Prompt", content: "请解释 {{内容}}")
+expect(
+    library.items.contains { $0.id == createdPrompt.id },
+    "新建 Prompt 必须进入内容库"
+)
+
+library.update(id: createdPrompt.id, title: "已编辑 Prompt", content: "编辑后的内容")
+expect(
+    library.items.first { $0.id == createdPrompt.id }?.title == "已编辑 Prompt",
+    "Prompt 编辑必须保存新标题"
+)
+
+library.delete(id: "development-prompt")
+expect(
+    !library.items.contains { $0.id == "development-prompt" },
+    "内置 Prompt 也必须允许永久删除"
+)
+
+let recentClip = Clip(id: "recent-pin", category: .recent, title: "可收藏内容", content: "一键收藏的文本", source: "剪贴板")
+let firstPin = library.pin(recentClip)
+let secondPin = library.pin(recentClip)
+let matchingPins = library.items.filter { $0.category == .pinned && $0.content == recentClip.content }
+expect(
+    firstPin.id == secondPin.id && matchingPins.count == 1,
+    "同一最近复制内容只能收藏一次"
+)
+
+print("通过：内容库 CRUD 与一键收藏")
