@@ -59,4 +59,11 @@ public struct ContentLibrary: Sendable, Codable {
         items.insert(pinned, at: 0)
         return pinned
     }
+
+    @discardableResult
+    public mutating func unpin(_ clip: Clip) -> Bool {
+        let countBeforeRemoval = items.count
+        items.removeAll { $0.category == .pinned && $0.content == clip.content }
+        return items.count != countBeforeRemoval
+    }
 }

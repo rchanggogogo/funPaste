@@ -183,7 +183,7 @@ public struct RibbonDeckView: View {
                                 isSelected: selectedID == clip.id,
                                 isPinned: store.isPinned(clip),
                                 canPin: clip.category == .recent || clip.category == .image,
-                                onPin: { pin(clip) },
+                                onPin: { togglePin(clip) },
                                 onEdit: { startEditingLibraryItem(clip) },
                                 onDelete: { itemPendingDeletion = clip }
                             )
@@ -314,9 +314,14 @@ public struct RibbonDeckView: View {
         store.paste(clip, prepareForPaste: prepareForPaste ?? {})
     }
 
-    private func pin(_ clip: Clip) {
-        let item = store.pin(clip)
-        store.showFeedback(store.isPinned(clip) ? "已收藏「\(item.title)」" : "已更新收藏")
+    private func togglePin(_ clip: Clip) {
+        if store.isPinned(clip) {
+            store.unpin(clip)
+            store.showFeedback("已取消收藏「\(clip.title)」")
+        } else {
+            let item = store.pin(clip)
+            store.showFeedback("已收藏「\(item.title)」")
+        }
     }
 
     private func startCreatingLibraryItem(category: ClipCategory) {

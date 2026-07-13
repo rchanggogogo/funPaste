@@ -184,6 +184,12 @@ expect(
     "同一最近复制内容只能收藏一次"
 )
 
+library.unpin(recentClip)
+expect(
+    !library.items.contains { $0.category == .pinned && $0.content == recentClip.content },
+    "再次点击已收藏内容必须取消收藏，但不删除原始历史"
+)
+
 print("通过：内容库 CRUD 与一键收藏")
 
 let librarySuiteName = "funPaste.tests.library"
