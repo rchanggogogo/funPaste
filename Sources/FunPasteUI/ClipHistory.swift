@@ -30,6 +30,26 @@ public struct ClipHistory: Sendable, Codable {
             clips.removeLast(clips.count - maximumCount)
         }
     }
+
+    public mutating func recordImage(_ data: Data, title: String = "剪贴图片", source: String = "剪贴板") {
+        guard !data.isEmpty else { return }
+        clips.removeAll { $0.imageData == data }
+        clips.insert(
+            Clip(
+                id: UUID().uuidString,
+                category: .image,
+                title: title,
+                content: "图片 · \(ByteCountFormatter.string(fromByteCount: Int64(data.count), countStyle: .file))",
+                source: source,
+                imageData: data
+            ),
+            at: 0
+        )
+
+        if clips.count > maximumCount {
+            clips.removeLast(clips.count - maximumCount)
+        }
+    }
 }
 
 private extension String {

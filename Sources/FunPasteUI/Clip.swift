@@ -22,13 +22,15 @@ public struct Clip: Identifiable, Equatable, Sendable, Codable {
     public let title: String
     public let content: String
     public let source: String
+    public let imageData: Data?
 
-    public init(id: String, category: ClipCategory, title: String, content: String, source: String) {
+    public init(id: String, category: ClipCategory, title: String, content: String, source: String, imageData: Data? = nil) {
         self.id = id
         self.category = category
         self.title = title
         self.content = content
         self.source = source
+        self.imageData = imageData
     }
 
     public static let demo: [Clip] = [

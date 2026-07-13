@@ -28,6 +28,12 @@ public final class ClipboardStore: ObservableObject {
         persist()
     }
 
+    public func recordClipboardImage(_ data: Data) {
+        guard !isPaused else { return }
+        history.recordImage(data)
+        persist()
+    }
+
     public func togglePause() {
         isPaused.toggle()
         defaults.set(isPaused, forKey: pauseKey)
@@ -42,7 +48,11 @@ public final class ClipboardStore: ObservableObject {
 
     public func copy(_ clip: Clip) {
         NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(clip.content, forType: .string)
+        if let imageData = clip.imageData, let image = NSImage(data: imageData) {
+            NSPasteboard.general.writeObjects([image])
+        } else {
+            NSPasteboard.general.setString(clip.content, forType: .string)
+        }
     }
 
     public func paste(_ clip: Clip) {

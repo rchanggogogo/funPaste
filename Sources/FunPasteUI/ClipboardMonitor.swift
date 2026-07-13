@@ -29,7 +29,10 @@ public final class ClipboardMonitor {
         let pasteboard = NSPasteboard.general
         guard pasteboard.changeCount != lastChangeCount else { return }
         lastChangeCount = pasteboard.changeCount
-        guard let text = pasteboard.string(forType: .string) else { return }
-        store.recordClipboardText(text)
+        if let image = NSImage(pasteboard: pasteboard), let data = image.tiffRepresentation {
+            store.recordClipboardImage(data)
+        } else if let text = pasteboard.string(forType: .string) {
+            store.recordClipboardText(text)
+        }
     }
 }
