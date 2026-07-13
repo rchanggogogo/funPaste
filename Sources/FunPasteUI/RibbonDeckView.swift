@@ -133,23 +133,32 @@ public struct RibbonDeckView: View {
     }
 
     private var historyList: some View {
-        ScrollView {
-            LazyVStack(spacing: 9) {
-                if visibleClips.isEmpty {
-                    ContentUnavailableView("没有找到相关内容", systemImage: "magnifyingglass", description: Text("换个关键词，或切换分类继续浏览。"))
-                        .frame(maxWidth: .infinity, minHeight: 180)
-                } else {
-                    ForEach(visibleClips) { clip in
-                        ClipRow(clip: clip, isSelected: selectedID == clip.id)
-                            .contentShape(Rectangle())
-                            .onTapGesture { select(clip) }
-                            .onTapGesture(count: 2) { pasteAndDismiss(clip) }
-                            .pointingCursor()
-                            .accessibilityAddTraits(selectedID == clip.id ? .isSelected : [])
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 9) {
+                    if visibleClips.isEmpty {
+                        ContentUnavailableView("没有找到相关内容", systemImage: "magnifyingglass", description: Text("换个关键词，或切换分类继续浏览。"))
+                            .frame(maxWidth: .infinity, minHeight: 180)
+                    } else {
+                        ForEach(visibleClips) { clip in
+                            ClipRow(clip: clip, isSelected: selectedID == clip.id)
+                                .id(clip.id)
+                                .contentShape(Rectangle())
+                                .onTapGesture { select(clip) }
+                                .onTapGesture(count: 2) { pasteAndDismiss(clip) }
+                                .pointingCursor()
+                                .accessibilityAddTraits(selectedID == clip.id ? .isSelected : [])
+                        }
                     }
                 }
+                .padding(.vertical, 2)
             }
-            .padding(.vertical, 2)
+            .onChange(of: selectedID) { _, selectedID in
+                guard let selectedID else { return }
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.18)) {
+                    proxy.scrollTo(selectedID, anchor: .center)
+                }
+            }
         }
         .frame(maxHeight: .infinity)
     }
