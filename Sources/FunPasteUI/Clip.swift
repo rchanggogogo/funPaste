@@ -92,9 +92,9 @@ public struct Clip: Identifiable, Equatable, Sendable, Codable {
         )
     ]
 
-    public static func presentationItems(history: [Clip]) -> [Clip] {
-        guard !history.isEmpty else { return demo }
-        let reusableItems = demo.filter { $0.category != .recent }
-        return history + reusableItems
+    public static func presentationItems(history: [Clip], library: ContentLibrary = .seeded) -> [Clip] {
+        let staticItems = demo.filter { $0.category == .image || $0.category == .file }
+        let recentItems = history.isEmpty ? demo.filter { $0.category == .recent } : history
+        return recentItems + library.items + staticItems
     }
 }
