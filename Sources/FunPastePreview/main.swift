@@ -38,12 +38,6 @@ struct FunPastePreview: App {
     @NSApplicationDelegateAdaptor(MacAppDelegate.self) private var appDelegate
 
     var body: some Scene {
-        WindowGroup("funPaste") {
-            RibbonDeckView(store: appDelegate.store)
-                .frame(minWidth: 760, minHeight: 560)
-        }
-        .windowResizability(.contentSize)
-
         MenuBarExtra("funPaste", systemImage: "square.on.square.intersection.dashed") {
             Button("显示 funPaste") {
                 appDelegate.togglePanel()

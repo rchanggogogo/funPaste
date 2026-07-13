@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 public struct RibbonDeckView: View {
@@ -9,17 +10,18 @@ public struct RibbonDeckView: View {
     @State private var isEditingPrompt = false
     @State private var featureDescription = ""
     @State private var technicalConstraint = ""
-    @State private var toastMessage: String?
 
     private let compact: Bool
+    private let dismissPanel: (() -> Void)?
 
-    public init(store: ClipboardStore, compact: Bool = false) {
+    public init(store: ClipboardStore, compact: Bool = false, dismissPanel: (() -> Void)? = nil) {
         self.store = store
         self.compact = compact
+        self.dismissPanel = dismissPanel
     }
 
     private var visibleClips: [Clip] {
-        let categories: Set<ClipCategory> = category == .recent ? [.recent, .prompt] : [category]
+        let categories: Set<ClipCategory> = category == .recent ? [.recent, .prompt, .image] : [category]
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
         return store.clips.filter { clip in
             categories.contains(clip.category) && (query.isEmpty || clip.title.localizedCaseInsensitiveContains(query) || clip.content.localizedCaseInsensitiveContains(query))
@@ -28,41 +30,26 @@ public struct RibbonDeckView: View {
 
     public var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(red: 24 / 255, green: 30 / 255, blue: 53 / 255), FunPasteTheme.ink], startPoint: .topLeading, endPoint: .bottomTrailing)
-                .ignoresSafeArea()
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .fill(LinearGradient(colors: [Color(red: 24 / 255, green: 30 / 255, blue: 53 / 255), FunPasteTheme.ink], startPoint: .topLeading, endPoint: .bottomTrailing))
+                .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(.white.opacity(0.14)))
 
-            VStack(spacing: 18) {
+            VStack(spacing: 14) {
                 header
                 ribbon
                 headline
-                deck
+                historyList
                 if isEditingPrompt { promptEditor }
                 footer
             }
-            .padding(24)
-            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 28, style: .continuous).stroke(.white.opacity(0.14)))
-            .padding()
-
-            if let toastMessage = store.feedbackMessage ?? toastMessage {
-                VStack {
-                    Spacer()
-                    Text(toastMessage)
-                        .font(.subheadline.weight(.medium))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-                        .background(.thinMaterial, in: Capsule())
-                        .padding(.bottom, 28)
-                }
-                .transition(.opacity)
-            }
+            .padding(18)
         }
+        .padding(8)
         .preferredColorScheme(.dark)
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.22), value: category)
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: selectedID)
-        .onAppear {
-            selectedID = visibleClips.first?.id
-        }
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: category)
+        .onAppear { selectedID = visibleClips.first?.id }
+        .onChange(of: category) { _, _ in selectedID = visibleClips.first?.id }
+        .onExitCommand { dismissPanel?() }
     }
 
     private var header: some View {
@@ -70,145 +57,137 @@ public struct RibbonDeckView: View {
             Label("funPaste", systemImage: "square.on.square.intersection.dashed")
                 .font(.title3.bold())
             Spacer()
-            Label("本地私密保存", systemImage: "checkmark.circle.fill")
-                .font(.caption)
-                .foregroundStyle(FunPasteTheme.mint)
+            if compact {
+                Button(action: dismissPanel ?? {}) {
+                    Image(systemName: "xmark")
+                        .font(.caption.weight(.bold))
+                        .frame(width: 28, height: 28)
+                }
+                .buttonStyle(.plain)
+                .background(.white.opacity(0.1), in: Circle())
+                .accessibilityLabel("关闭 funPaste")
+            }
         }
     }
 
     private var ribbon: some View {
-        HStack(spacing: 4) {
-            ForEach(ClipCategory.defaultOrder, id: \.self) { item in
-                Button {
-                    category = item
-                    searchText = ""
-                    selectedID = visibleClips.first?.id
-                    isEditingPrompt = false
-                } label: {
-                    Text(item.label)
-                        .font(.subheadline.weight(.semibold))
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 8)
-                        .foregroundStyle(category == item ? FunPasteTheme.ink : .secondary)
-                        .background(category == item ? FunPasteTheme.accent : .clear, in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 4) {
+                ForEach(ClipCategory.defaultOrder, id: \.self) { item in
+                    Button {
+                        category = item
+                        searchText = ""
+                        isEditingPrompt = false
+                    } label: {
+                        Text(item.label)
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 7)
+                            .foregroundStyle(category == item ? FunPasteTheme.ink : .secondary)
+                            .background(category == item ? FunPasteTheme.accent : .clear, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("切换到\(item.label)")
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel("切换到\(item.label)")
             }
-            Spacer(minLength: 0)
-            Text("按住可调整顺序")
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
+            .padding(4)
         }
-        .padding(5)
-        .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private var headline: some View {
         HStack(alignment: .lastTextBaseline) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(category.label.uppercased())
                     .font(.caption2.weight(.bold))
-                    .tracking(1.5)
+                    .tracking(1.2)
                     .foregroundStyle(FunPasteTheme.lilac)
                 Text(category.headline)
-                    .font(.system(size: 31, weight: .bold, design: .rounded))
+                    .font(.title3.bold())
             }
             Spacer()
-            Text("\(visibleClips.count) 个项目")
-                .font(.caption.weight(.medium))
-                .padding(.horizontal, 10)
-                .padding(.vertical, 7)
-                .background(FunPasteTheme.lilac.opacity(0.16), in: Capsule())
-                .foregroundStyle(.white.opacity(0.86))
+            Text("\(visibleClips.count)")
+                .font(.caption.weight(.bold))
+                .padding(8)
+                .background(FunPasteTheme.lilac.opacity(0.16), in: Circle())
         }
     }
 
-    private var deck: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 14) {
+    private var historyList: some View {
+        ScrollView {
+            LazyVStack(spacing: 9) {
                 if visibleClips.isEmpty {
-                    ContentUnavailableView("没有找到相关内容", systemImage: "magnifyingglass", description: Text("换个关键词，或回到全部项目继续浏览。"))
-                        .frame(width: 520, height: 190)
+                    ContentUnavailableView("没有找到相关内容", systemImage: "magnifyingglass", description: Text("换个关键词，或切换分类继续浏览。"))
+                        .frame(maxWidth: .infinity, minHeight: 180)
                 } else {
                     ForEach(visibleClips) { clip in
-                        ClipCard(clip: clip, isSelected: selectedID == clip.id)
+                        ClipRow(clip: clip, isSelected: selectedID == clip.id)
+                            .contentShape(Rectangle())
                             .onTapGesture { select(clip) }
-                            .onTapGesture(count: 2) { store.paste(clip) }
+                            .onTapGesture(count: 2) { pasteAndDismiss(clip) }
                             .accessibilityAddTraits(selectedID == clip.id ? .isSelected : [])
                     }
                 }
             }
-            .padding(.horizontal, 7)
-            .padding(.vertical, 12)
+            .padding(.vertical, 2)
         }
-        .frame(minHeight: compact ? 205 : 225)
+        .frame(maxHeight: .infinity)
     }
 
     private var promptEditor: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("准备粘贴").font(.caption.weight(.bold)).foregroundStyle(FunPasteTheme.lilac)
-                    Text("补全这个 Prompt").font(.title3.bold())
-                }
+                Text("补全这个 Prompt").font(.headline)
                 Spacer()
                 Button { isEditingPrompt = false } label: { Image(systemName: "xmark") }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(.plain)
                     .accessibilityLabel("关闭 Prompt 编辑")
             }
-            TextField("功能描述，例如：增加收藏分组", text: $featureDescription)
-                .textFieldStyle(.roundedBorder)
-            TextField("技术约束，例如：沿用 SwiftUI", text: $technicalConstraint)
-                .textFieldStyle(.roundedBorder)
+            TextField("功能描述", text: $featureDescription).textFieldStyle(.roundedBorder)
+            TextField("技术约束", text: $technicalConstraint).textFieldStyle(.roundedBorder)
             HStack {
-                Button("仅复制") { copyPreparedPrompt() }
-                    .buttonStyle(.bordered)
+                Button("复制") { copyPreparedPrompt() }.buttonStyle(.bordered)
                 Spacer()
-                Button("生成并粘贴") {
-                    isEditingPrompt = false
-                    pastePreparedPrompt()
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(FunPasteTheme.accent)
+                Button("生成并粘贴") { pastePreparedPrompt() }
+                    .buttonStyle(.borderedProminent)
+                    .tint(FunPasteTheme.accent)
             }
         }
-        .padding(18)
-        .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(FunPasteTheme.accent.opacity(0.42)))
+        .padding(13)
+        .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(FunPasteTheme.accent.opacity(0.42)))
     }
 
     private var footer: some View {
-        HStack(spacing: 16) {
-            Label {
-                TextField("直接输入即可搜索", text: $searchText)
-                    .textFieldStyle(.plain)
-            } icon: { Image(systemName: "magnifyingglass") }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
-            .background(.black.opacity(0.2), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-            Spacer()
-            Text("↑↓ 选择  ·  ↵ 粘贴  ·  ⇧↵ 纯文本")
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-        }
+        Label {
+            TextField("搜索剪贴历史", text: $searchText)
+                .textFieldStyle(.plain)
+        } icon: { Image(systemName: "magnifyingglass") }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(.black.opacity(0.2), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
     }
 
     private func select(_ clip: Clip) {
         selectedID = clip.id
-        if clip.category == .prompt { isEditingPrompt = true }
+        isEditingPrompt = clip.category == .prompt
     }
 
     private func copyPreparedPrompt() {
         guard let prompt = selectedClip else { return }
         store.copy(preparedPrompt(from: prompt))
-        store.showFeedback("Prompt 已复制到剪贴板")
+        dismissPanel?()
     }
 
     private func pastePreparedPrompt() {
         guard let prompt = selectedClip else { return }
         store.paste(preparedPrompt(from: prompt))
-        isEditingPrompt = false
+        dismissPanel?()
+    }
+
+    private func pasteAndDismiss(_ clip: Clip) {
+        store.paste(clip)
+        dismissPanel?()
     }
 
     private var selectedClip: Clip? {
@@ -226,58 +205,47 @@ public struct RibbonDeckView: View {
             source: prompt.source
         )
     }
-
-    private func showToast(_ message: String) {
-        toastMessage = message
-        Task { @MainActor in
-            try? await Task.sleep(for: .seconds(2))
-            toastMessage = nil
-        }
-    }
 }
 
-private struct ClipCard: View {
+private struct ClipRow: View {
     let clip: Clip
     let isSelected: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Image(systemName: clip.symbol)
-                    .frame(width: 26, height: 26)
-                    .background(.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
-                Spacer()
-                Text(clip.category.label)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-            Text(clip.title)
-                .font(.headline)
-                .lineLimit(2)
-            if clip.category == .image {
-                LinearGradient(colors: [.orange, .pink, .purple], startPoint: .topLeading, endPoint: .bottomTrailing)
-                    .frame(height: 58)
-                    .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
-            } else {
+        HStack(spacing: 12) {
+            preview
+            VStack(alignment: .leading, spacing: 5) {
+                HStack {
+                    Text(clip.title).font(.subheadline.weight(.semibold)).lineLimit(1)
+                    Spacer(minLength: 8)
+                    Text(clip.category.label).font(.caption2).foregroundStyle(.secondary)
+                }
                 Text(clip.content)
-                    .font(clip.source == "Xcode" ? .system(.caption, design: .monospaced) : .caption)
-                    .foregroundStyle(clip.source == "Xcode" ? FunPasteTheme.mint : .secondary)
-                    .lineLimit(3)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                Text(clip.source).font(.caption2).foregroundStyle(FunPasteTheme.mint.opacity(0.8))
             }
             Spacer(minLength: 0)
-            HStack {
-                Text(clip.source).font(.caption2).foregroundStyle(.secondary)
-                Spacer()
-                Text(isSelected ? "回车粘贴" : "点击选择").font(.caption2).foregroundStyle(isSelected ? FunPasteTheme.accent : .secondary)
-            }
+            if isSelected { Image(systemName: "return").font(.caption).foregroundStyle(FunPasteTheme.accent) }
         }
-        .padding(16)
-        .frame(width: 242, height: 192, alignment: .leading)
-        .background(.white.opacity(isSelected ? 0.12 : 0.075), in: RoundedRectangle(cornerRadius: 19, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 19, style: .continuous).stroke(isSelected ? FunPasteTheme.accent : .white.opacity(0.12), lineWidth: isSelected ? 2 : 1))
-        .shadow(color: isSelected ? FunPasteTheme.accent.opacity(0.18) : .black.opacity(0.12), radius: isSelected ? 18 : 8, y: 8)
-        .scaleEffect(isSelected ? 1.03 : 0.92)
-        .opacity(isSelected ? 1 : 0.7)
+        .padding(12)
+        .background(.white.opacity(isSelected ? 0.12 : 0.07), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(isSelected ? FunPasteTheme.accent : .white.opacity(0.10), lineWidth: isSelected ? 1.5 : 1))
+    }
+
+    @ViewBuilder private var preview: some View {
+        if let imageData = clip.imageData, let image = NSImage(data: imageData) {
+            Image(nsImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 52, height: 52)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        } else {
+            Image(systemName: clip.symbol)
+                .frame(width: 52, height: 52)
+                .background(.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+        }
     }
 }
 
@@ -297,7 +265,7 @@ private extension ClipCategory {
         case .recent: "刚复制，也最应该先看到"
         case .prompt: "把好问题留在触手可及处"
         case .pinned: "真正值得反复使用的内容"
-        case .image: "视觉灵感，也能快速找回"
+        case .image: "刚复制的图片，也在这里"
         case .file: "文件引用，不再散落在记忆里"
         }
     }

@@ -20,7 +20,7 @@ public final class QuickPanelController {
 
     public func show() {
         let panel = makePanelIfNeeded()
-        let panelSize = NSSize(width: 930, height: 570)
+        let panelSize = NSSize(width: 420, height: 640)
         panel.setContentSize(panelSize)
 
         let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main
@@ -28,8 +28,8 @@ public final class QuickPanelController {
             let frame = screen.visibleFrame
             panel.setFrameOrigin(
                 NSPoint(
-                    x: frame.midX - panelSize.width / 2,
-                    y: frame.minY + 22
+                    x: frame.maxX - panelSize.width - 18,
+                    y: frame.midY - panelSize.height / 2
                 )
             )
         }
@@ -41,19 +41,23 @@ public final class QuickPanelController {
         if let panel { return panel }
 
         let panel = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 930, height: 570),
+            contentRect: NSRect(x: 0, y: 0, width: 420, height: 640),
             styleMask: [.borderless, .nonactivatingPanel, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
-        panel.level = .popUpMenu
+        panel.level = .floating
         panel.isFloatingPanel = true
-        panel.hidesOnDeactivate = false
+        panel.hidesOnDeactivate = true
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
-        panel.contentView = NSHostingView(rootView: RibbonDeckView(store: store, compact: true))
+        panel.contentView = NSHostingView(
+            rootView: RibbonDeckView(store: store, compact: true, dismissPanel: { [weak panel] in
+                panel?.orderOut(nil)
+            })
+        )
         self.panel = panel
         return panel
     }

@@ -1,3 +1,4 @@
+import Foundation
 import FunPasteUI
 
 func expect(_ condition: @autoclosure () -> Bool, _ message: String) {
@@ -78,3 +79,19 @@ expect(
 )
 
 print("通过：真实历史与 Prompt 模板共存")
+
+var imageHistory = ClipHistory(maximumCount: 3)
+let imageData = Data([0x89, 0x50, 0x4E, 0x47])
+imageHistory.recordImage(imageData, title: "截图")
+
+expect(
+    imageHistory.clips.first?.category == .image,
+    "复制图片后必须作为图片项目出现在历史顶部"
+)
+
+expect(
+    imageHistory.clips.first?.imageData == imageData,
+    "图片历史必须保留原始图片数据，以便显示缩略图和再次复制"
+)
+
+print("通过：图片剪贴历史")
