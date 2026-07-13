@@ -3,7 +3,7 @@ import SwiftUI
 
 @MainActor
 public final class QuickPanelController {
-    public static let hidesOnDeactivate = false
+    public static let hidesOnDeactivate = true
     public static let usesNonactivatingPanel = false
     public static let requiresApplicationActivation = true
 
