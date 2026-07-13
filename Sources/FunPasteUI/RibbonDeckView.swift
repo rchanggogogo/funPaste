@@ -238,6 +238,14 @@ public struct RibbonDeckView: View {
             moveSelection(forward: true)
         case .paste:
             pasteSelectedClip()
+        case .selectPreviousCategory:
+            category = CategoryNavigator.previous(before: category)
+            searchText = ""
+            isEditingPrompt = false
+        case .selectNextCategory:
+            category = CategoryNavigator.next(after: category)
+            searchText = ""
+            isEditingPrompt = false
         }
     }
 

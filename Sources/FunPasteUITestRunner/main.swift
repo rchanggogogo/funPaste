@@ -134,3 +134,11 @@ expect(
 )
 
 print("通过：原生键盘命令映射")
+
+expect(
+    CategoryNavigator.next(after: .file) == .recent &&
+        CategoryNavigator.previous(before: .recent) == .file,
+    "Tab 必须在分类栏首尾循环切换"
+)
+
+print("通过：分类 Tab 循环")
