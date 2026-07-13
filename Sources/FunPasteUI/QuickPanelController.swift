@@ -5,6 +5,7 @@ import SwiftUI
 public final class QuickPanelController {
     public static let hidesOnDeactivate = false
     public static let usesNonactivatingPanel = false
+    public static let requiresApplicationActivation = true
 
     private let store: ClipboardStore
     private var panel: NSPanel?
@@ -43,6 +44,9 @@ public final class QuickPanelController {
             )
         }
 
+        if Self.requiresApplicationActivation {
+            NSApp.setActivationPolicy(.regular)
+        }
         panel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
@@ -50,6 +54,9 @@ public final class QuickPanelController {
     public func dismiss() {
         panel?.orderOut(nil)
         previousApplication?.activate()
+        if Self.requiresApplicationActivation {
+            NSApp.setActivationPolicy(.accessory)
+        }
     }
 
     private func makePanelIfNeeded() -> NSPanel {
@@ -68,9 +75,16 @@ public final class QuickPanelController {
         panel.backgroundColor = .clear
         panel.hasShadow = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        panel.onKeyCommand = { [weak self] command in
+            if command == .dismiss {
+                self?.dismiss()
+            } else {
+                NotificationCenter.default.post(name: .funPastePanelKeyCommand, object: command)
+            }
+        }
         panel.contentView = NSHostingView(
-            rootView: RibbonDeckView(store: store, compact: true, dismissPanel: { [weak panel] in
-                panel?.orderOut(nil)
+            rootView: RibbonDeckView(store: store, compact: true, dismissPanel: { [weak self] in
+                self?.dismiss()
             }, prepareForPaste: { [weak self] in
                 self?.dismiss()
             })
@@ -82,8 +96,13 @@ public final class QuickPanelController {
 
 private final class KeyablePanel: NSPanel {
     override var canBecomeKey: Bool { true }
+    var onKeyCommand: ((PanelKeyCommand) -> Void)?
 
-    override func cancelOperation(_ sender: Any?) {
-        orderOut(nil)
+    override func keyDown(with event: NSEvent) {
+        if let command = PanelKeyCommand(keyCode: event.keyCode) {
+            onKeyCommand?(command)
+        } else {
+            super.keyDown(with: event)
+        }
     }
 }

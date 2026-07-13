@@ -52,6 +52,10 @@ public struct RibbonDeckView: View {
         .onAppear { selectedID = visibleClips.first?.id }
         .onChange(of: category) { _, _ in selectedID = visibleClips.first?.id }
         .onExitCommand { dismissPanel?() }
+        .onReceive(NotificationCenter.default.publisher(for: .funPastePanelKeyCommand)) { notification in
+            guard let command = notification.object as? PanelKeyCommand else { return }
+            handlePanelKeyCommand(command)
+        }
         .onMoveCommand { direction in
             switch direction {
             case .up: moveSelection(forward: false)
@@ -218,9 +222,22 @@ public struct RibbonDeckView: View {
     private func pasteSelectedClip() {
         guard let selectedClip else { return }
         if selectedClip.category == .prompt {
-            isEditingPrompt = true
+            store.paste(preparedPrompt(from: selectedClip), prepareForPaste: prepareForPaste ?? {})
         } else {
             pasteAndDismiss(selectedClip)
+        }
+    }
+
+    private func handlePanelKeyCommand(_ command: PanelKeyCommand) {
+        switch command {
+        case .dismiss:
+            dismissPanel?()
+        case .selectPrevious:
+            moveSelection(forward: false)
+        case .selectNext:
+            moveSelection(forward: true)
+        case .paste:
+            pasteSelectedClip()
         }
     }
 

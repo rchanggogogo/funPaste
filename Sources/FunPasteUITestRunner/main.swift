@@ -117,3 +117,20 @@ expect(
 )
 
 print("通过：侧栏允许完整交互")
+
+expect(
+    QuickPanelController.requiresApplicationActivation == true,
+    "显示侧栏时必须让 funPaste 成为前台应用，键盘事件才会进入侧栏"
+)
+
+print("通过：侧栏会获得系统键盘焦点")
+
+expect(
+    PanelKeyCommand(keyCode: 53) == .dismiss &&
+        PanelKeyCommand(keyCode: 126) == .selectPrevious &&
+        PanelKeyCommand(keyCode: 125) == .selectNext &&
+        PanelKeyCommand(keyCode: 36) == .paste,
+    "Esc、上下键和回车必须在原生窗口层映射为侧栏操作"
+)
+
+print("通过：原生键盘命令映射")
