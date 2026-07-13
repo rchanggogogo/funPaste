@@ -22,4 +22,5 @@ public enum PanelKeyCommand: Equatable, Sendable {
 
 public extension Notification.Name {
     static let funPastePanelKeyCommand = Notification.Name("funPaste.panelKeyCommand")
+    static let funPastePanelDidShow = Notification.Name("funPaste.panelDidShow")
 }
