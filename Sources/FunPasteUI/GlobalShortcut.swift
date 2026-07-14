@@ -1,4 +1,7 @@
 import Carbon.HIToolbox
+import OSLog
+
+private let shortcutLogger = Logger(subsystem: "com.changlei.funPaste", category: "快捷键")
 
 @MainActor
 public final class GlobalShortcut {
@@ -23,6 +26,7 @@ public final class GlobalShortcut {
             { _, _, userData in
                 guard let userData else { return noErr }
                 let shortcut = Unmanaged<GlobalShortcut>.fromOpaque(userData).takeUnretainedValue()
+                shortcutLogger.notice("收到全局快捷键事件")
                 Task { @MainActor in
                     shortcut.action()
                 }
@@ -34,7 +38,10 @@ public final class GlobalShortcut {
             &eventHandlerRef
         )
 
-        guard installStatus == noErr else { return }
+        guard installStatus == noErr else {
+            shortcutLogger.error("快捷键事件监听注册失败：\(installStatus)")
+            return
+        }
 
         let identifier = EventHotKeyID(signature: OSType(0x46505354), id: 1)
         let registerStatus = RegisterEventHotKey(
@@ -47,7 +54,10 @@ public final class GlobalShortcut {
         )
 
         if registerStatus != noErr {
+            shortcutLogger.error("全局快捷键注册失败：\(registerStatus)")
             stop()
+        } else {
+            shortcutLogger.notice("全局快捷键注册成功")
         }
     }
 

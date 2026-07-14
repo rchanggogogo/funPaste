@@ -35,6 +35,11 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
         }
         shortcut.start()
         self.shortcut = shortcut
+
+        Task { @MainActor [weak store] in
+            try? await Task.sleep(for: .milliseconds(500))
+            store?.requestPasteAccessIfNeeded()
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {

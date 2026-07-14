@@ -1,6 +1,9 @@
 import AppKit
 import ApplicationServices
 import Combine
+import OSLog
+
+private let clipboardLogger = Logger(subsystem: "com.changlei.funPaste", category: "粘贴")
 
 @MainActor
 public final class ClipboardStore: ObservableObject {
@@ -10,12 +13,17 @@ public final class ClipboardStore: ObservableObject {
     @Published public private(set) var feedbackMessage: String?
 
     private let defaults: UserDefaults
+    private let pasteEventAuthorization: PasteEventAuthorization
     private let historyKey = "funPaste.history"
     private let libraryKey = "funPaste.library"
     private let pauseKey = "funPaste.isPaused"
 
-    public init(defaults: UserDefaults = .standard) {
+    public init(
+        defaults: UserDefaults = .standard,
+        pasteEventAuthorization: PasteEventAuthorization = .live
+    ) {
         self.defaults = defaults
+        self.pasteEventAuthorization = pasteEventAuthorization
         self.history = Self.loadHistory(from: defaults) ?? ClipHistory()
         self.library = Self.loadLibrary(from: defaults) ?? .seeded
         self.isPaused = defaults.object(forKey: pauseKey) as? Bool ?? false
@@ -98,18 +106,25 @@ public final class ClipboardStore: ObservableObject {
         prepareForPaste: @escaping (@escaping @MainActor () -> Void) -> Void = { completion in completion() }
     ) {
         copy(clip)
-        guard CGPreflightPostEventAccess() else {
-            CGRequestPostEventAccess()
-            showFeedback("已复制，请手动粘贴")
-            return
-        }
-
-        prepareForPaste { [weak self] in
+        clipboardLogger.notice("已复制待粘贴内容")
+        let hadAccessBeforeAttempt = PasteAttemptCoordinator.perform(
+            authorization: pasteEventAuthorization,
+            prepareForPaste: prepareForPaste
+        ) { [weak self] in
             self?.postPasteEvent(for: clip)
+        }
+        if !hadAccessBeforeAttempt {
+            clipboardLogger.notice("预检查未授权，继续发送事件以触发 PostEvent 授权")
         }
     }
 
+    @discardableResult
+    public func requestPasteAccessIfNeeded() -> Bool {
+        pasteEventAuthorization.requestIfNeeded()
+    }
+
     private func postPasteEvent(for clip: Clip) {
+        clipboardLogger.notice("正在发送 Command-V")
         let source = CGEventSource(stateID: .combinedSessionState)
         let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: true)
         let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 9, keyDown: false)
