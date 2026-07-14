@@ -11,7 +11,7 @@ public final class QuickPanelController {
     public static let usesNonactivatingPanel = false
     public static let usesLocalKeyMonitor = true
     public static let requiresApplicationActivation = true
-    public static let panelActivationPolicy: NSApplication.ActivationPolicy = .regular
+    public static let panelActivationPolicy: NSApplication.ActivationPolicy = .accessory
     public static let restingActivationPolicy: NSApplication.ActivationPolicy = .accessory
     public static let defaultCategoryOnOpen: ClipCategory = .recent
 

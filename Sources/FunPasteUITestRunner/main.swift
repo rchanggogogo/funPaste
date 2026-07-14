@@ -135,11 +135,12 @@ expect(
 print("通过：侧栏激活后接收键盘焦点")
 
 expect(
-    QuickPanelController.panelActivationPolicy == .regular,
-    "显示侧栏时必须临时成为普通应用，才能让面板接收键盘输入"
+    QuickPanelController.panelActivationPolicy == .accessory &&
+        QuickPanelController.restingActivationPolicy == .accessory,
+    "funPaste 打开和收起侧栏时都必须保持后台工具策略，不能显示 Dock 图标"
 )
 
-print("通过：侧栏打开与收起的激活策略")
+print("通过：侧栏始终保持后台工具策略")
 
 var pasteTarget = PasteTargetState()
 pasteTarget.remember(processIdentifier: 101, ownProcessIdentifier: 99)
