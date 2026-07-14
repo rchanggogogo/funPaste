@@ -98,11 +98,12 @@ expect(
 print("通过：图片剪贴历史")
 
 expect(
-    QuickPanelController.hidesOnDeactivate == true,
-    "点击其他区域导致应用失焦时，侧栏必须自动收起"
+    QuickPanelController.hidesOnDeactivate == false &&
+        QuickPanelController.usesOutsideClickMonitor == true,
+    "可获焦点面板必须保持显示，并由外部点击监听负责收起"
 )
 
-print("通过：侧栏失焦时自动收起")
+print("通过：侧栏通过外部点击自动收起")
 
 expect(
     SelectionNavigator.nextIndex(current: 0, count: 3) == 1 &&
@@ -114,24 +115,31 @@ print("通过：历史方向键选择")
 
 expect(
     QuickPanelController.usesNonactivatingPanel == false,
-    "需要键盘输入和 SwiftUI 按钮交互的侧栏不能使用非激活窗口"
+    "侧栏必须使用可获焦点面板，才能可靠接收键盘输入"
 )
 
-print("通过：侧栏允许完整交互")
+print("通过：侧栏使用可获焦点面板")
+
+expect(
+    QuickPanelController.usesLocalKeyMonitor == true,
+    "面板显示时必须在应用内部优先处理 Enter、方向键、Tab 和 Esc"
+)
+
+print("通过：侧栏使用应用内按键监听")
 
 expect(
     QuickPanelController.requiresApplicationActivation == true,
-    "显示侧栏时必须让 funPaste 成为前台应用，键盘事件才会进入侧栏"
+    "显示侧栏时必须激活 funPaste，才能可靠接收键盘输入"
 )
 
-print("通过：侧栏会获得系统键盘焦点")
+print("通过：侧栏激活后接收键盘焦点")
 
 expect(
-    QuickPanelController.panelActivationPolicy == .accessory,
-    "打开侧栏时必须保持后台工具策略，不能显示 Dock 图标"
+    QuickPanelController.panelActivationPolicy == .regular,
+    "显示侧栏时必须临时成为普通应用，才能让面板接收键盘输入"
 )
 
-print("通过：侧栏打开时保持后台工具策略")
+print("通过：侧栏打开与收起的激活策略")
 
 var pasteTarget = PasteTargetState()
 pasteTarget.remember(processIdentifier: 101, ownProcessIdentifier: 99)
@@ -144,6 +152,86 @@ expect(
 )
 
 print("通过：粘贴目标焦点恢复")
+
+var pasteAccessRequestCount = 0
+let deniedPasteAuthorization = PasteEventAuthorization(
+    preflight: { false },
+    request: {
+        pasteAccessRequestCount += 1
+        return false
+    }
+)
+expect(
+    deniedPasteAuthorization.requestIfNeeded() == false && pasteAccessRequestCount == 1,
+    "缺少跨应用粘贴权限时必须主动请求系统授权"
+)
+
+let grantedPasteAuthorization = PasteEventAuthorization(
+    preflight: { true },
+    request: {
+        pasteAccessRequestCount += 1
+        return false
+    }
+)
+expect(
+    grantedPasteAuthorization.requestIfNeeded() == true && pasteAccessRequestCount == 1,
+    "已有跨应用粘贴权限时不得重复请求授权"
+)
+
+print("通过：跨应用粘贴权限请求策略")
+
+var fallbackPasteAccessRequestCount = 0
+let fallbackPasteAuthorization = PasteEventAuthorization(
+    preflight: { false },
+    request: { false },
+    fallbackPreflight: { false },
+    fallbackRequest: {
+        fallbackPasteAccessRequestCount += 1
+        return true
+    }
+)
+expect(
+    fallbackPasteAuthorization.requestIfNeeded() && fallbackPasteAccessRequestCount == 1,
+    "PostEvent 请求无效时必须改用完整辅助功能授权请求"
+)
+
+print("通过：完整辅助功能备用授权")
+
+var didPrepareDeniedPaste = false
+var didPostDeniedPaste = false
+PasteAttemptCoordinator.perform(
+    authorization: PasteEventAuthorization(preflight: { false }, request: { false }),
+    prepareForPaste: { completion in
+        didPrepareDeniedPaste = true
+        completion()
+    },
+    postPasteEvent: {
+        didPostDeniedPaste = true
+    }
+)
+expect(
+    didPrepareDeniedPaste && didPostDeniedPaste,
+    "预检查未授权时也必须实际尝试发送粘贴事件，让 macOS 处理 PostEvent 授权"
+)
+
+print("通过：未授权时仍尝试发送粘贴事件")
+
+var focusRestorationSteps: [String] = []
+PasteFocusRestorer.restore(
+    deactivateApplication: { focusRestorationSteps.append("退出前台") },
+    enterBackgroundMode: { focusRestorationSteps.append("恢复后台") },
+    scheduleTargetActivation: { activation in
+        focusRestorationSteps.append("等待切换")
+        activation()
+    },
+    activateTarget: { focusRestorationSteps.append("激活目标") }
+)
+expect(
+    focusRestorationSteps == ["退出前台", "恢复后台", "等待切换", "激活目标"],
+    "粘贴前必须先让 funPaste 退出前台，再异步激活原输入应用"
+)
+
+print("通过：粘贴焦点恢复顺序")
 
 expect(
     PanelKeyCommand(keyCode: 53) == .dismiss &&

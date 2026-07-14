@@ -30,4 +30,21 @@ plutil -replace LSMinimumSystemVersion -string "14.0" "$info_plist"
 plutil -replace NSHighResolutionCapable -bool true "$info_plist"
 plutil -replace LSUIElement -bool true "$info_plist"
 
+if [[ -n "${FUNPASTE_CODESIGN_IDENTITY:-}" ]]; then
+  codesign \
+    --force \
+    --sign "$FUNPASTE_CODESIGN_IDENTITY" \
+    --identifier "com.changlei.funPaste" \
+    "$app_dir"
+else
+  codesign \
+    --force \
+    --sign - \
+    --identifier "com.changlei.funPaste" \
+    --requirements '=designated => identifier "com.changlei.funPaste"' \
+    "$app_dir"
+fi
+
+codesign --verify --deep --strict --verbose=2 "$app_dir"
+
 echo "已构建应用：$app_dir"
