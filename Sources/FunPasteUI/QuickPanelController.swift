@@ -11,7 +11,8 @@ public final class QuickPanelController {
 
     private let store: ClipboardStore
     private var panel: NSPanel?
-    private var previousApplication: NSRunningApplication?
+    private var pasteTargetApplication: NSRunningApplication?
+    private var pasteTargetState = PasteTargetState()
 
     public init(store: ClipboardStore) {
         self.store = store
@@ -19,17 +20,14 @@ public final class QuickPanelController {
 
     public func toggle() {
         if panel?.isVisible == true {
-            panel?.orderOut(nil)
+            dismiss()
         } else {
             show()
         }
     }
 
     public func show() {
-        let frontmostApplication = NSWorkspace.shared.frontmostApplication
-        if frontmostApplication?.processIdentifier != ProcessInfo.processInfo.processIdentifier {
-            previousApplication = frontmostApplication
-        }
+        rememberPasteTarget(NSWorkspace.shared.frontmostApplication)
 
         let panel = makePanelIfNeeded()
         let panelSize = NSSize(width: 420, height: 640)
@@ -56,9 +54,52 @@ public final class QuickPanelController {
 
     public func dismiss() {
         panel?.orderOut(nil)
-        previousApplication?.activate()
+        pasteTargetApplication?.activate()
         if Self.requiresApplicationActivation {
             NSApp.setActivationPolicy(Self.panelActivationPolicy)
+        }
+    }
+
+    public func rememberPasteTarget(_ application: NSRunningApplication?) {
+        let ownProcessIdentifier = ProcessInfo.processInfo.processIdentifier
+        guard let application, application.processIdentifier != ownProcessIdentifier else { return }
+        pasteTargetApplication = application
+        pasteTargetState.remember(
+            processIdentifier: application.processIdentifier,
+            ownProcessIdentifier: ownProcessIdentifier
+        )
+    }
+
+    private func prepareForPaste(_ completion: @escaping @MainActor () -> Void) {
+        panel?.orderOut(nil)
+        guard let target = pasteTargetApplication, !target.isTerminated else {
+            store.showFeedback("已复制，请手动粘贴")
+            return
+        }
+
+        target.activate()
+        waitForPasteTarget(attemptsRemaining: 50, completion: completion)
+    }
+
+    private func waitForPasteTarget(
+        attemptsRemaining: Int,
+        completion: @escaping @MainActor () -> Void
+    ) {
+        if pasteTargetState.isFrontmost(
+            processIdentifier: NSWorkspace.shared.frontmostApplication?.processIdentifier
+        ) {
+            completion()
+            return
+        }
+
+        guard attemptsRemaining > 0 else {
+            store.showFeedback("已复制，请手动粘贴")
+            return
+        }
+
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .milliseconds(20))
+            self?.waitForPasteTarget(attemptsRemaining: attemptsRemaining - 1, completion: completion)
         }
     }
 
@@ -88,8 +129,8 @@ public final class QuickPanelController {
         panel.contentView = NSHostingView(
             rootView: RibbonDeckView(store: store, compact: true, dismissPanel: { [weak self] in
                 self?.dismiss()
-            }, prepareForPaste: { [weak self] in
-                self?.dismiss()
+            }, prepareForPaste: { [weak self] completion in
+                self?.prepareForPaste(completion)
             })
         )
         self.panel = panel

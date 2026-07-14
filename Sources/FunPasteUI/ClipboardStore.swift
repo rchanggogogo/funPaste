@@ -93,7 +93,10 @@ public final class ClipboardStore: ObservableObject {
         }
     }
 
-    public func paste(_ clip: Clip, prepareForPaste: @escaping @MainActor () -> Void = {}) {
+    public func paste(
+        _ clip: Clip,
+        prepareForPaste: @escaping (@escaping @MainActor () -> Void) -> Void = { completion in completion() }
+    ) {
         copy(clip)
         guard CGPreflightPostEventAccess() else {
             CGRequestPostEventAccess()
@@ -101,9 +104,7 @@ public final class ClipboardStore: ObservableObject {
             return
         }
 
-        prepareForPaste()
-        Task { @MainActor [weak self] in
-            try? await Task.sleep(for: .milliseconds(180))
+        prepareForPaste { [weak self] in
             self?.postPasteEvent(for: clip)
         }
     }

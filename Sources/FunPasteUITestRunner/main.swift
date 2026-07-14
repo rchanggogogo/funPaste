@@ -133,6 +133,18 @@ expect(
 
 print("通过：侧栏打开时保持后台工具策略")
 
+var pasteTarget = PasteTargetState()
+pasteTarget.remember(processIdentifier: 101, ownProcessIdentifier: 99)
+pasteTarget.remember(processIdentifier: 99, ownProcessIdentifier: 99)
+expect(
+    pasteTarget.processIdentifier == 101 &&
+        pasteTarget.isFrontmost(processIdentifier: 101) &&
+        !pasteTarget.isFrontmost(processIdentifier: 99),
+    "粘贴目标必须保留最后一个非 funPaste 的前台应用，并只在它恢复前台后粘贴"
+)
+
+print("通过：粘贴目标焦点恢复")
+
 expect(
     PanelKeyCommand(keyCode: 53) == .dismiss &&
         PanelKeyCommand(keyCode: 126) == .selectPrevious &&
