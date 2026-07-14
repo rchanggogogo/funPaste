@@ -31,6 +31,15 @@ swift run FunPastePreview
 swift run FunPasteUITestRunner
 ```
 
+构建可双击启动的 macOS App：
+
+```sh
+bash scripts/build-app.sh
+open dist/funPaste.app
+```
+
+该构建用于本机使用；首次分发给其他 Mac 前，仍需要使用 Apple Developer 证书签名并完成公证。
+
 ## 快捷键
 
 | 按键 | 功能 |
