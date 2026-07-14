@@ -9,6 +9,8 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
     private var shortcut: GlobalShortcut?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.setActivationPolicy(.accessory)
+
         let monitor = ClipboardMonitor(store: store)
         monitor.start()
         self.monitor = monitor
