@@ -28,5 +28,6 @@ plutil -replace CFBundleShortVersionString -string "1.0.0" "$info_plist"
 plutil -replace CFBundleVersion -string "1" "$info_plist"
 plutil -replace LSMinimumSystemVersion -string "14.0" "$info_plist"
 plutil -replace NSHighResolutionCapable -bool true "$info_plist"
+plutil -replace LSUIElement -bool true "$info_plist"
 
 echo "已构建应用：$app_dir"
