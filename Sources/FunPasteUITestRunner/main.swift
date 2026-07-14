@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 import FunPasteUI
 
 func expect(_ condition: @autoclosure () -> Bool, _ message: String) {
@@ -124,6 +125,13 @@ expect(
 )
 
 print("通过：侧栏会获得系统键盘焦点")
+
+expect(
+    QuickPanelController.panelActivationPolicy == .accessory,
+    "打开侧栏时必须保持后台工具策略，不能显示 Dock 图标"
+)
+
+print("通过：侧栏打开时保持后台工具策略")
 
 expect(
     PanelKeyCommand(keyCode: 53) == .dismiss &&
