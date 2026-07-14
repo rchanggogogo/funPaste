@@ -6,6 +6,7 @@ public final class QuickPanelController {
     public static let hidesOnDeactivate = true
     public static let usesNonactivatingPanel = false
     public static let requiresApplicationActivation = true
+    public static let panelActivationPolicy: NSApplication.ActivationPolicy = .accessory
     public static let defaultCategoryOnOpen: ClipCategory = .recent
 
     private let store: ClipboardStore
@@ -46,7 +47,7 @@ public final class QuickPanelController {
         }
 
         if Self.requiresApplicationActivation {
-            NSApp.setActivationPolicy(.regular)
+            NSApp.setActivationPolicy(Self.panelActivationPolicy)
         }
         panel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
@@ -57,7 +58,7 @@ public final class QuickPanelController {
         panel?.orderOut(nil)
         previousApplication?.activate()
         if Self.requiresApplicationActivation {
-            NSApp.setActivationPolicy(.accessory)
+            NSApp.setActivationPolicy(Self.panelActivationPolicy)
         }
     }
 
