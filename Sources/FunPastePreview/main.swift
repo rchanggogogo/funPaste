@@ -7,6 +7,7 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
     private var monitor: ClipboardMonitor?
     private var panelController: QuickPanelController?
     private var shortcut: GlobalShortcut?
+    private var activationObserver: NSObjectProtocol?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
@@ -18,6 +19,17 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
         let panelController = QuickPanelController(store: store)
         self.panelController = panelController
 
+        activationObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification,
+            object: nil,
+            queue: .main
+        ) { [weak panelController] notification in
+            let application = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            Task { @MainActor in
+                panelController?.rememberPasteTarget(application)
+            }
+        }
+
         let shortcut = GlobalShortcut { [weak panelController] in
             panelController?.toggle()
         }
@@ -28,6 +40,9 @@ final class MacAppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         monitor?.stop()
         shortcut?.stop()
+        if let activationObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(activationObserver)
+        }
     }
 
     func togglePanel() {

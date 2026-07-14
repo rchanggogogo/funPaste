@@ -19,9 +19,14 @@ public struct RibbonDeckView: View {
 
     private let compact: Bool
     private let dismissPanel: (() -> Void)?
-    private let prepareForPaste: (@MainActor @Sendable () -> Void)?
+    private let prepareForPaste: (@MainActor @Sendable (@escaping @MainActor () -> Void) -> Void)?
 
-    public init(store: ClipboardStore, compact: Bool = false, dismissPanel: (() -> Void)? = nil, prepareForPaste: (@MainActor @Sendable () -> Void)? = nil) {
+    public init(
+        store: ClipboardStore,
+        compact: Bool = false,
+        dismissPanel: (() -> Void)? = nil,
+        prepareForPaste: (@MainActor @Sendable (@escaping @MainActor () -> Void) -> Void)? = nil
+    ) {
         self.store = store
         self.compact = compact
         self.dismissPanel = dismissPanel
@@ -307,11 +312,11 @@ public struct RibbonDeckView: View {
 
     private func pastePreparedPrompt() {
         guard let prompt = selectedClip else { return }
-        store.paste(preparedPrompt(from: prompt), prepareForPaste: prepareForPaste ?? {})
+        store.paste(preparedPrompt(from: prompt), prepareForPaste: prepareForPaste ?? { $0() })
     }
 
     private func pasteAndDismiss(_ clip: Clip) {
-        store.paste(clip, prepareForPaste: prepareForPaste ?? {})
+        store.paste(clip, prepareForPaste: prepareForPaste ?? { $0() })
     }
 
     private func togglePin(_ clip: Clip) {
@@ -389,7 +394,7 @@ public struct RibbonDeckView: View {
     private func pasteSelectedClip() {
         guard let selectedClip else { return }
         if selectedClip.category == .prompt {
-            store.paste(preparedPrompt(from: selectedClip), prepareForPaste: prepareForPaste ?? {})
+            store.paste(preparedPrompt(from: selectedClip), prepareForPaste: prepareForPaste ?? { $0() })
         } else {
             pasteAndDismiss(selectedClip)
         }
