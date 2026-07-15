@@ -2,6 +2,8 @@ import AppKit
 import SwiftUI
 
 public struct RibbonDeckView: View {
+    public static let newLibraryItemButtonHitSize: CGFloat = 36
+
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ObservedObject private var store: ClipboardStore
     @State private var category: ClipCategory = .recent
@@ -10,11 +12,7 @@ public struct RibbonDeckView: View {
     @State private var isEditingPrompt = false
     @State private var featureDescription = ""
     @State private var technicalConstraint = ""
-    @State private var isShowingLibraryEditor = false
-    @State private var libraryEditorCategory: ClipCategory = .prompt
-    @State private var editingLibraryItem: Clip?
-    @State private var libraryTitle = ""
-    @State private var libraryContent = ""
+    @State private var libraryEditorState = LibraryEditorState()
     @State private var itemPendingDeletion: Clip?
 
     private let compact: Bool
@@ -53,7 +51,7 @@ public struct RibbonDeckView: View {
                 headline
                 historyList
                 if isEditingPrompt { promptEditor }
-                if isShowingLibraryEditor { libraryEditor }
+                if libraryEditorState.isPresented { libraryEditor }
                 footer
             }
             .padding(18)
@@ -159,7 +157,11 @@ public struct RibbonDeckView: View {
                 } label: {
                     Image(systemName: "plus")
                         .font(.caption.weight(.bold))
-                        .frame(width: 28, height: 28)
+                        .frame(
+                            width: Self.newLibraryItemButtonHitSize,
+                            height: Self.newLibraryItemButtonHitSize
+                        )
+                        .contentShape(Circle())
                 }
                 .buttonStyle(.plain)
                 .background(FunPasteTheme.accent, in: Circle())
@@ -243,9 +245,9 @@ public struct RibbonDeckView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(editingLibraryItem == nil ? (libraryEditorCategory == .prompt ? "新建 Prompt" : "新建收藏") : "编辑\(libraryEditorCategory == .prompt ? " Prompt" : "收藏")")
+                    Text(libraryEditorState.editingItem == nil ? (libraryEditorState.category == .prompt ? "新建 Prompt" : "新建收藏") : "编辑\(libraryEditorState.category == .prompt ? " Prompt" : "收藏")")
                         .font(.headline)
-                    if libraryEditorCategory == .prompt {
+                    if libraryEditorState.category == .prompt {
                         Text("可使用 {{功能描述}}、{{技术约束}} 作为变量")
                             .font(.caption2)
                             .foregroundStyle(.secondary)
@@ -258,18 +260,18 @@ public struct RibbonDeckView: View {
                     .accessibilityLabel("关闭内容编辑")
             }
             TextField(
-                libraryEditorCategory == .prompt ? "标题，例如：实现一个新功能" : "标题，例如：常用收件地址",
-                text: $libraryTitle
+                libraryEditorState.category == .prompt ? "标题，例如：实现一个新功能" : "标题，例如：常用收件地址",
+                text: $libraryEditorState.title
             )
             .textFieldStyle(.roundedBorder)
-            TextEditor(text: $libraryContent)
+            TextEditor(text: $libraryEditorState.content)
                 .font(.body)
                 .frame(minHeight: 88, maxHeight: 110)
                 .padding(6)
                 .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).stroke(.white.opacity(0.12)))
-            if libraryContent.isEmpty {
-                Text(libraryEditorCategory == .prompt ? "示例：请帮我完成……" : "填写需要长期保留的内容")
+            if libraryEditorState.content.isEmpty {
+                Text(libraryEditorState.category == .prompt ? "示例：请帮我完成……" : "填写需要长期保留的内容")
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -278,7 +280,7 @@ public struct RibbonDeckView: View {
                     .buttonStyle(.bordered)
                     .pointingCursor()
                 Spacer()
-                Button(editingLibraryItem == nil ? "创建" : "保存") { saveLibraryEditor() }
+                Button(libraryEditorState.editingItem == nil ? "创建" : "保存") { saveLibraryEditor() }
                     .buttonStyle(.borderedProminent)
                     .tint(FunPasteTheme.accent)
                     .pointingCursor()
@@ -330,44 +332,33 @@ public struct RibbonDeckView: View {
     }
 
     private func startCreatingLibraryItem(category: ClipCategory) {
-        libraryEditorCategory = category
-        editingLibraryItem = nil
-        libraryTitle = ""
-        libraryContent = ""
         isEditingPrompt = false
-        isShowingLibraryEditor = true
+        libraryEditorState.startCreating(category: category)
     }
 
     private func startEditingLibraryItem(_ item: Clip) {
-        libraryEditorCategory = item.category
-        editingLibraryItem = item
-        libraryTitle = item.title
-        libraryContent = item.content
         isEditingPrompt = false
-        isShowingLibraryEditor = true
+        libraryEditorState.startEditing(item)
     }
 
     private func closeLibraryEditor() {
-        isShowingLibraryEditor = false
-        editingLibraryItem = nil
-        libraryTitle = ""
-        libraryContent = ""
+        libraryEditorState.close()
     }
 
     private func saveLibraryEditor() {
-        let title = libraryTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-        let content = libraryContent.trimmingCharacters(in: .whitespacesAndNewlines)
+        let title = libraryEditorState.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let content = libraryEditorState.content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !title.isEmpty, !content.isEmpty else {
             store.showFeedback("标题和内容都不能为空")
             return
         }
 
         let savedItem: Clip
-        if let item = editingLibraryItem {
+        if let item = libraryEditorState.editingItem {
             store.updateLibraryItem(id: item.id, title: title, content: content)
             savedItem = Clip(id: item.id, category: item.category, title: title, content: content, source: item.source, imageData: item.imageData)
         } else {
-            savedItem = store.createLibraryItem(category: libraryEditorCategory, title: title, content: content)
+            savedItem = store.createLibraryItem(category: libraryEditorState.category, title: title, content: content)
         }
         selectedID = savedItem.id
         closeLibraryEditor()
@@ -425,6 +416,7 @@ public struct RibbonDeckView: View {
         category = QuickPanelController.defaultCategoryOnOpen
         searchText = ""
         isEditingPrompt = false
+        libraryEditorState.resetForPanelOpening()
         selectedID = store.clips.first { [.recent, .prompt, .image].contains($0.category) }?.id
     }
 
