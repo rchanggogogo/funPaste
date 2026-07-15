@@ -1,12 +1,18 @@
 import Foundation
 
 public struct ClipHistory: Sendable, Codable {
+    public static let defaultMaximumCount = 200
+
     public private(set) var clips: [Clip] = []
     public let maximumCount: Int
 
-    public init(maximumCount: Int = 500, clips: [Clip] = []) {
+    public init(maximumCount: Int = Self.defaultMaximumCount, clips: [Clip] = []) {
         self.maximumCount = maximumCount
         self.clips = Array(clips.prefix(maximumCount))
+    }
+
+    public func limited(to maximumCount: Int) -> ClipHistory {
+        ClipHistory(maximumCount: maximumCount, clips: clips)
     }
 
     public mutating func record(_ content: String, source: String = "剪贴板") {
