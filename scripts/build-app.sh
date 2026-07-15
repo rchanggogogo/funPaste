@@ -10,10 +10,19 @@ info_plist="$contents_dir/Info.plist"
 bash "$project_dir/scripts/make-icon.sh"
 
 cd "$project_dir"
-swift build -c release --product FunPastePreview
+if [[ -n "${FUNPASTE_EXECUTABLE_PATH:-}" ]]; then
+  executable_path="$FUNPASTE_EXECUTABLE_PATH"
+  if [[ ! -x "$executable_path" ]]; then
+    echo "找不到可执行文件：$executable_path" >&2
+    exit 1
+  fi
+else
+  swift build -c release --product FunPastePreview
+  executable_path="$project_dir/.build/release/FunPastePreview"
+fi
 
 mkdir -p "$contents_dir/MacOS" "$contents_dir/Resources"
-cp "$project_dir/.build/release/FunPastePreview" "$contents_dir/MacOS/funPaste"
+cp "$executable_path" "$contents_dir/MacOS/funPaste"
 chmod +x "$contents_dir/MacOS/funPaste"
 cp "$project_dir/Assets/AppIcon/AppIcon.icns" "$contents_dir/Resources/AppIcon.icns"
 
@@ -24,7 +33,7 @@ plutil -replace CFBundleIdentifier -string "com.changlei.funPaste" "$info_plist"
 plutil -replace CFBundleExecutable -string "funPaste" "$info_plist"
 plutil -replace CFBundleIconFile -string "AppIcon" "$info_plist"
 plutil -replace CFBundlePackageType -string "APPL" "$info_plist"
-plutil -replace CFBundleShortVersionString -string "1.0.0" "$info_plist"
+plutil -replace CFBundleShortVersionString -string "${FUNPASTE_VERSION:-1.0.0}" "$info_plist"
 plutil -replace CFBundleVersion -string "1" "$info_plist"
 plutil -replace LSMinimumSystemVersion -string "14.0" "$info_plist"
 plutil -replace NSHighResolutionCapable -bool true "$info_plist"
