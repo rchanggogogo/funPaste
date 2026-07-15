@@ -7,6 +7,8 @@ private let clipboardLogger = Logger(subsystem: "com.changlei.funPaste", categor
 
 @MainActor
 public final class ClipboardStore: ObservableObject {
+    private static let historyKey = "funPaste.history"
+
     @Published public private(set) var history: ClipHistory
     @Published public private(set) var library: ContentLibrary
     @Published public private(set) var isPaused: Bool
@@ -14,7 +16,6 @@ public final class ClipboardStore: ObservableObject {
 
     private let defaults: UserDefaults
     private let pasteEventAuthorization: PasteEventAuthorization
-    private let historyKey = "funPaste.history"
     private let libraryKey = "funPaste.library"
     private let pauseKey = "funPaste.isPaused"
 
@@ -22,11 +23,19 @@ public final class ClipboardStore: ObservableObject {
         defaults: UserDefaults = .standard,
         pasteEventAuthorization: PasteEventAuthorization = .live
     ) {
+        let loadedHistory = Self.loadHistory(from: defaults)
+        let history = loadedHistory?.limited(to: ClipHistory.defaultMaximumCount) ?? ClipHistory()
+
         self.defaults = defaults
         self.pasteEventAuthorization = pasteEventAuthorization
-        self.history = Self.loadHistory(from: defaults) ?? ClipHistory()
+        self.history = history
         self.library = Self.loadLibrary(from: defaults) ?? .seeded
         self.isPaused = defaults.object(forKey: pauseKey) as? Bool ?? false
+
+        if loadedHistory?.maximumCount != history.maximumCount ||
+            loadedHistory?.clips.count != history.clips.count {
+            Self.persist(history, to: defaults)
+        }
     }
 
     public var clips: [Clip] {
@@ -144,8 +153,7 @@ public final class ClipboardStore: ObservableObject {
     }
 
     private func persistHistory() {
-        guard let data = try? JSONEncoder().encode(history) else { return }
-        defaults.set(data, forKey: historyKey)
+        Self.persist(history, to: defaults)
     }
 
     private func persistLibrary() {
@@ -154,8 +162,13 @@ public final class ClipboardStore: ObservableObject {
     }
 
     private static func loadHistory(from defaults: UserDefaults) -> ClipHistory? {
-        guard let data = defaults.data(forKey: "funPaste.history") else { return nil }
+        guard let data = defaults.data(forKey: historyKey) else { return nil }
         return try? JSONDecoder().decode(ClipHistory.self, from: data)
+    }
+
+    private static func persist(_ history: ClipHistory, to defaults: UserDefaults) {
+        guard let data = try? JSONEncoder().encode(history) else { return }
+        defaults.set(data, forKey: historyKey)
     }
 
     private static func loadLibrary(from defaults: UserDefaults) -> ContentLibrary? {

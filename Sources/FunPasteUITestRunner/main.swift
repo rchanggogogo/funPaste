@@ -70,6 +70,40 @@ expect(
 
 print("通过：历史数量上限")
 
+expect(
+    ClipHistory().maximumCount == 200,
+    "默认剪贴历史最多只能保存 200 条"
+)
+
+let migrationSuiteName = "funPaste.tests.history-migration"
+let migrationDefaults = UserDefaults(suiteName: migrationSuiteName)!
+migrationDefaults.removePersistentDomain(forName: migrationSuiteName)
+let legacyClips = (0..<500).map { index in
+    Clip(
+        id: "legacy-\(index)",
+        category: .recent,
+        title: "旧记录 \(index)",
+        content: "旧内容 \(index)",
+        source: "剪贴板"
+    )
+}
+let legacyHistory = ClipHistory(maximumCount: 500, clips: legacyClips)
+migrationDefaults.set(try! JSONEncoder().encode(legacyHistory), forKey: "funPaste.history")
+let migratedHistoryStore = ClipboardStore(defaults: migrationDefaults)
+let reloadedMigratedHistoryStore = ClipboardStore(defaults: migrationDefaults)
+
+expect(
+    migratedHistoryStore.history.maximumCount == 200 &&
+        migratedHistoryStore.history.clips.count == 200 &&
+        reloadedMigratedHistoryStore.history.maximumCount == 200 &&
+        reloadedMigratedHistoryStore.history.clips.count == 200,
+    "加载旧版历史时必须迁移并裁剪到最近 200 条"
+)
+
+migrationDefaults.removePersistentDomain(forName: migrationSuiteName)
+
+print("通过：默认历史上限与旧数据迁移")
+
 let liveHistory = [
     Clip(id: "live", category: .recent, title: "刚复制", content: "真实剪贴内容", source: "剪贴板")
 ]
@@ -258,6 +292,27 @@ expect(
 )
 
 print("通过：打开侧栏默认最近复制")
+
+expect(
+    RibbonDeckView.newLibraryItemButtonHitSize >= 36,
+    "新建 Prompt 按钮必须提供完整且易点击的命中区域"
+)
+
+var libraryEditorState = LibraryEditorState()
+libraryEditorState.startCreating(category: .prompt)
+libraryEditorState.title = "未保存标题"
+libraryEditorState.content = "未保存内容"
+libraryEditorState.resetForPanelOpening()
+
+expect(
+    !libraryEditorState.isPresented &&
+        libraryEditorState.editingItem == nil &&
+        libraryEditorState.title.isEmpty &&
+        libraryEditorState.content.isEmpty,
+    "重新打开面板时必须关闭并清空未保存的新建窗口"
+)
+
+print("通过：新建按钮命中区域与面板重开状态")
 
 var library = ContentLibrary.seeded
 expect(
