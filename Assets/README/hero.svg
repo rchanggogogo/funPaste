@@ -1,0 +1,104 @@
+<svg width="1200" height="640" viewBox="0 0 1200 640" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="background" x1="80" y1="20" x2="1120" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#262E52"/>
+      <stop offset="0.52" stop-color="#141A2D"/>
+      <stop offset="1" stop-color="#0B0E19"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="140" y1="120" x2="1060" y2="560" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#293252"/>
+      <stop offset="1" stop-color="#171D31"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#FFD07D"/>
+      <stop offset="1" stop-color="#FF8A59"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#394469"/>
+      <stop offset="1" stop-color="#252D49"/>
+    </linearGradient>
+    <radialGradient id="glowOne" cx="0" cy="0" r="1" gradientTransform="translate(110 180) rotate(35) scale(360 300)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4D8396" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#4D8396" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowTwo" cx="0" cy="0" r="1" gradientTransform="translate(1110 565) rotate(-140) scale(390 290)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#985B8D" stop-opacity="0.62"/>
+      <stop offset="1" stop-color="#985B8D" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="80" y="70" width="1040" height="560" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="28" stdDeviation="30" flood-color="#050713" flood-opacity="0.55"/>
+    </filter>
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="640" rx="32" fill="url(#background)"/>
+  <rect width="1200" height="640" rx="32" fill="url(#glowOne)"/>
+  <rect width="1200" height="640" rx="32" fill="url(#glowTwo)"/>
+
+  <g opacity="0.38">
+    <rect x="120" y="58" width="630" height="278" rx="24" fill="#242C49" stroke="#FFFFFF" stroke-opacity="0.13"/>
+    <circle cx="151" cy="87" r="6" fill="#FF8D76"/>
+    <circle cx="171" cy="87" r="6" fill="#F7C36C"/>
+    <circle cx="191" cy="87" r="6" fill="#8CD8A1"/>
+    <rect x="174" y="145" width="390" height="10" rx="5" fill="#A8B4DD" fill-opacity="0.24"/>
+    <rect x="174" y="174" width="270" height="10" rx="5" fill="#A8B4DD" fill-opacity="0.18"/>
+    <rect x="174" y="203" width="176" height="10" rx="5" fill="#A8B4DD" fill-opacity="0.16"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="90" y="180" width="1020" height="404" rx="30" fill="url(#panel)" stroke="#FFFFFF" stroke-opacity="0.16"/>
+  </g>
+
+  <rect x="122" y="211" width="30" height="30" rx="9" fill="url(#accent)"/>
+  <text x="137" y="233" text-anchor="middle" fill="#2C1920" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="20" font-weight="800">f</text>
+  <text x="166" y="233" fill="#F7F8FF" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="18" font-weight="700">funPaste</text>
+  <circle cx="935" cy="226" r="5" fill="#88E2C1"/>
+  <circle cx="935" cy="226" r="13" fill="#88E2C1" fill-opacity="0.2" filter="url(#softGlow)"/>
+  <text x="950" y="231" fill="#AAB5D0" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13">仅在本机处理</text>
+
+  <rect x="122" y="264" width="956" height="48" rx="14" fill="#0C1120" fill-opacity="0.42" stroke="#FFFFFF" stroke-opacity="0.07"/>
+  <rect x="129" y="271" width="92" height="34" rx="10" fill="url(#accent)"/>
+  <text x="175" y="293" text-anchor="middle" fill="#2B1920" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13" font-weight="700">最近复制</text>
+  <text x="251" y="293" fill="#AAB3CC" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13">Prompt</text>
+  <text x="329" y="293" fill="#AAB3CC" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13">收藏</text>
+  <text x="386" y="293" fill="#AAB3CC" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="13">图片</text>
+
+  <text x="126" y="350" fill="#B9A6FF" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12" font-weight="700" letter-spacing="1.2">最近复制</text>
+  <text x="126" y="390" fill="#F7F8FF" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="30" font-weight="760">刚复制，也最应该先看到</text>
+  <rect x="973" y="356" width="85" height="30" rx="15" fill="#B9A6FF" fill-opacity="0.14"/>
+  <text x="1015" y="376" text-anchor="middle" fill="#D8CEFF" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12">5 个项目</text>
+
+  <g>
+    <rect x="126" y="420" width="222" height="122" rx="18" fill="url(#card)" stroke="#FF9F5B" stroke-width="2"/>
+    <rect x="140" y="434" width="28" height="28" rx="8" fill="#FFFFFF" fill-opacity="0.09"/>
+    <text x="154" y="453" text-anchor="middle" fill="#D7DDF0" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12">T</text>
+    <text x="140" y="489" fill="#F7F8FF" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="700">产品体验优先</text>
+    <text x="140" y="516" fill="#BBC4DC" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11">我只负责把控需求；实现交给你。</text>
+  </g>
+
+  <g opacity="0.86">
+    <rect x="365" y="428" width="216" height="114" rx="18" fill="url(#card)" stroke="#FFFFFF" stroke-opacity="0.09"/>
+    <text x="381" y="460" fill="#88E2C1" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">@State selectedID</text>
+    <text x="381" y="489" fill="#F7F8FF" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="700">SwiftUI 焦点状态</text>
+    <text x="381" y="520" fill="#8E99B7" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11">Xcode · 2 分钟前</text>
+  </g>
+
+  <g opacity="0.76">
+    <rect x="598" y="428" width="216" height="114" rx="18" fill="url(#card)" stroke="#FFFFFF" stroke-opacity="0.09"/>
+    <text x="614" y="460" fill="#B9A6FF" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12">PROMPT</text>
+    <text x="614" y="489" fill="#F7F8FF" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="700">请帮我完成这个功能</text>
+    <text x="614" y="520" fill="#8E99B7" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11">内置模板 · 常用</text>
+  </g>
+
+  <g opacity="0.66">
+    <rect x="831" y="428" width="216" height="114" rx="18" fill="url(#card)" stroke="#FFFFFF" stroke-opacity="0.09"/>
+    <text x="847" y="460" fill="#FFB97F" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="12">⌘ V</text>
+    <text x="847" y="489" fill="#F7F8FF" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="15" font-weight="700">选中，即刻粘贴</text>
+    <text x="847" y="520" fill="#8E99B7" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11">键盘优先 · 无需打断思路</text>
+  </g>
+
+  <rect x="875" y="598" width="235" height="28" rx="14" fill="#FFFFFF" fill-opacity="0.07"/>
+  <text x="992" y="617" text-anchor="middle" fill="#B8C1DA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">⇧⌘V  ·  搜索  ·  回车粘贴</text>
+</svg>
