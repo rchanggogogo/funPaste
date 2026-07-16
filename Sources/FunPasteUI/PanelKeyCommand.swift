@@ -13,6 +13,8 @@ public enum PanelKeyCommand: Equatable, Sendable {
         case 53: self = .dismiss
         case 126: self = .selectPrevious
         case 125: self = .selectNext
+        case 123: self = .selectPreviousCategory
+        case 124: self = .selectNextCategory
         case 36, 76: self = .paste
         case 48: self = shiftPressed ? .selectPreviousCategory : .selectNextCategory
         default: return nil
