@@ -29,10 +29,24 @@ public final class ClipboardMonitor {
         let pasteboard = NSPasteboard.general
         guard pasteboard.changeCount != lastChangeCount else { return }
         lastChangeCount = pasteboard.changeCount
-        if let image = NSImage(pasteboard: pasteboard), let data = image.tiffRepresentation {
+        let fileURLs = Self.fileURLs(in: pasteboard)
+        if !fileURLs.isEmpty {
+            store.recordClipboardFiles(fileURLs)
+        } else if let image = NSImage(pasteboard: pasteboard), let data = image.tiffRepresentation {
             store.recordClipboardImage(data)
         } else if let text = pasteboard.string(forType: .string) {
             store.recordClipboardText(text)
+        }
+    }
+
+    public static func fileURLs(in pasteboard: NSPasteboard) -> [URL] {
+        let objects = pasteboard.readObjects(
+            forClasses: [NSURL.self],
+            options: [.urlReadingFileURLsOnly: true]
+        ) ?? []
+        return objects.compactMap { object in
+            guard let url = object as? NSURL else { return nil }
+            return url as URL
         }
     }
 }

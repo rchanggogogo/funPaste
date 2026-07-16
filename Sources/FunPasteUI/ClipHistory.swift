@@ -56,6 +56,59 @@ public struct ClipHistory: Sendable, Codable {
             clips.removeLast(clips.count - maximumCount)
         }
     }
+
+    public mutating func recordFiles(_ urls: [URL], source: String = "Finder") {
+        var seen = Set<URL>()
+        let normalizedURLs = urls.compactMap { url -> URL? in
+            guard url.isFileURL else { return nil }
+            let normalizedURL = url.standardizedFileURL
+            return seen.insert(normalizedURL).inserted ? normalizedURL : nil
+        }
+        guard !normalizedURLs.isEmpty else { return }
+
+        clips.removeAll { $0.fileURLs == normalizedURLs }
+        let title = normalizedURLs.count == 1
+            ? normalizedURLs[0].lastPathComponent
+            : "\(normalizedURLs.count) 个文件"
+        clips.insert(
+            Clip(
+                id: UUID().uuidString,
+                category: .file,
+                title: title,
+                content: normalizedURLs.map(\.path).joined(separator: "\n"),
+                source: source,
+                fileURLs: normalizedURLs
+            ),
+            at: 0
+        )
+
+        if clips.count > maximumCount {
+            clips.removeLast(clips.count - maximumCount)
+        }
+    }
+
+    @discardableResult
+    public mutating func refreshFileReferences(
+        fileExists: (URL) -> Bool = { FileManager.default.fileExists(atPath: $0.path) }
+    ) -> Bool {
+        var didChange = false
+        clips = clips.compactMap { clip in
+            guard let fileURLs = clip.fileURLs, !fileURLs.isEmpty else { return clip }
+            let existingURLs = fileURLs.filter(fileExists)
+            guard existingURLs.count != fileURLs.count else { return clip }
+            didChange = true
+            guard !existingURLs.isEmpty else { return nil }
+            return Clip(
+                id: clip.id,
+                category: .file,
+                title: existingURLs.count == 1 ? existingURLs[0].lastPathComponent : "\(existingURLs.count) 个文件",
+                content: existingURLs.map(\.path).joined(separator: "\n"),
+                source: clip.source,
+                fileURLs: existingURLs
+            )
+        }
+        return didChange
+    }
 }
 
 private extension String {
