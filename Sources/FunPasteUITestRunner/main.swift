@@ -104,6 +104,32 @@ migrationDefaults.removePersistentDomain(forName: migrationSuiteName)
 
 print("通过：默认历史上限与旧数据迁移")
 
+let configurableLimitSuiteName = "funPaste.tests.configurable-history-limit"
+let configurableLimitDefaults = UserDefaults(suiteName: configurableLimitSuiteName)!
+configurableLimitDefaults.removePersistentDomain(forName: configurableLimitSuiteName)
+let configurableLimitStore = ClipboardStore(defaults: configurableLimitDefaults)
+for index in 0..<80 {
+    configurableLimitStore.recordClipboardText("可配置历史 \(index)")
+}
+configurableLimitStore.setHistoryMaximumCount(50)
+expect(
+    configurableLimitStore.history.maximumCount == 50 &&
+        configurableLimitStore.history.clips.count == 50 &&
+        configurableLimitStore.history.clips.first?.content == "可配置历史 79" &&
+        configurableLimitStore.history.clips.last?.content == "可配置历史 30",
+    "用户调小历史上限后必须立即裁剪最旧记录"
+)
+configurableLimitStore.setHistoryMaximumCount(500)
+let reloadedConfigurableLimitStore = ClipboardStore(defaults: configurableLimitDefaults)
+expect(
+    reloadedConfigurableLimitStore.history.maximumCount == 500 &&
+        reloadedConfigurableLimitStore.history.clips.count == 50,
+    "用户调大历史上限后必须保留现有记录，并在重启后继续生效"
+)
+configurableLimitDefaults.removePersistentDomain(forName: configurableLimitSuiteName)
+
+print("通过：用户可配置历史记录上限")
+
 let liveHistory = [
     Clip(id: "live", category: .recent, title: "刚复制", content: "真实剪贴内容", source: "剪贴板")
 ]
@@ -130,6 +156,89 @@ expect(
 )
 
 print("通过：图片剪贴历史")
+
+let fileTestDirectory = FileManager.default.temporaryDirectory
+    .appendingPathComponent("funPaste-file-tests-\(UUID().uuidString)", isDirectory: true)
+try! FileManager.default.createDirectory(at: fileTestDirectory, withIntermediateDirectories: true)
+defer { try? FileManager.default.removeItem(at: fileTestDirectory) }
+let firstFileURL = fileTestDirectory.appendingPathComponent("第一份.txt")
+let secondFileURL = fileTestDirectory.appendingPathComponent("第二份.md")
+try! Data("第一份文件".utf8).write(to: firstFileURL)
+try! Data("第二份文件".utf8).write(to: secondFileURL)
+
+var fileHistory = ClipHistory(maximumCount: 5)
+fileHistory.recordFiles([firstFileURL, secondFileURL, firstFileURL])
+expect(
+    fileHistory.clips.first?.category == .file &&
+        fileHistory.clips.first?.title == "2 个文件" &&
+        fileHistory.clips.first?.fileURLs == [firstFileURL.standardizedFileURL, secondFileURL.standardizedFileURL],
+    "复制多个文件时必须保存真实文件 URL、维持顺序并去除重复路径"
+)
+fileHistory.recordFiles([firstFileURL, secondFileURL])
+expect(
+    fileHistory.clips.count == 1,
+    "相同文件组合再次复制时不得产生重复历史"
+)
+
+let decodedFileHistory = try! JSONDecoder().decode(
+    ClipHistory.self,
+    from: JSONEncoder().encode(fileHistory)
+)
+expect(
+    decodedFileHistory.clips.first?.fileURLs == fileHistory.clips.first?.fileURLs,
+    "文件 URL 必须能随历史记录持久化并重新加载"
+)
+
+var refreshedFileHistory = fileHistory
+expect(
+    refreshedFileHistory.refreshFileReferences { $0 == secondFileURL.standardizedFileURL } &&
+        refreshedFileHistory.clips.first?.fileURLs == [secondFileURL.standardizedFileURL] &&
+        refreshedFileHistory.clips.first?.title == "第二份.md",
+    "多文件中的部分文件失效后，历史卡片必须只保留仍存在的文件"
+)
+expect(
+    refreshedFileHistory.refreshFileReferences { _ in false } && refreshedFileHistory.clips.isEmpty,
+    "文件全部失效后，历史卡片必须被自动移除"
+)
+
+let filePasteboard = NSPasteboard(name: NSPasteboard.Name("funPaste.tests.files"))
+filePasteboard.clearContents()
+filePasteboard.writeObjects([firstFileURL as NSURL, secondFileURL as NSURL])
+expect(
+    ClipboardMonitor.fileURLs(in: filePasteboard) == [firstFileURL, secondFileURL],
+    "剪贴板监听必须能读取 Finder 写入的单个或多个文件 URL"
+)
+
+let fileCopySuiteName = "funPaste.tests.file-copy"
+let fileCopyDefaults = UserDefaults(suiteName: fileCopySuiteName)!
+fileCopyDefaults.removePersistentDomain(forName: fileCopySuiteName)
+let fileCopyStore = ClipboardStore(defaults: fileCopyDefaults)
+fileCopyStore.recordClipboardFiles([firstFileURL, secondFileURL])
+let persistedFileClip = fileCopyStore.history.clips.first!
+let reloadedFileCopyStore = ClipboardStore(defaults: fileCopyDefaults)
+expect(
+    reloadedFileCopyStore.history.clips.first?.fileURLs == persistedFileClip.fileURLs,
+    "Store 重新加载后必须保留文件历史"
+)
+
+filePasteboard.clearContents()
+expect(
+    fileCopyStore.copy(persistedFileClip, to: filePasteboard) &&
+        ClipboardMonitor.fileURLs(in: filePasteboard) == [firstFileURL, secondFileURL],
+    "点击文件历史时必须把真实文件对象写回剪贴板"
+)
+
+try! FileManager.default.removeItem(at: firstFileURL)
+try! FileManager.default.removeItem(at: secondFileURL)
+expect(
+    !fileCopyStore.copy(persistedFileClip, to: filePasteboard) &&
+        fileCopyStore.history.clips.allSatisfy { $0.id != persistedFileClip.id } &&
+        fileCopyStore.feedbackMessage == "文件已被移动或删除，已从历史中移除",
+    "所有源文件失效后必须移除历史卡片、阻止空粘贴并给出可见反馈"
+)
+fileCopyDefaults.removePersistentDomain(forName: fileCopySuiteName)
+
+print("通过：文件捕获、去重、持久化、再次复制与失效保护")
 
 expect(
     QuickPanelController.hidesOnDeactivate == false &&
@@ -272,8 +381,10 @@ expect(
     PanelKeyCommand(keyCode: 53) == .dismiss &&
         PanelKeyCommand(keyCode: 126) == .selectPrevious &&
         PanelKeyCommand(keyCode: 125) == .selectNext &&
+        PanelKeyCommand(keyCode: 123) == .selectPreviousCategory &&
+        PanelKeyCommand(keyCode: 124) == .selectNextCategory &&
         PanelKeyCommand(keyCode: 36) == .paste,
-    "Esc、上下键和回车必须在原生窗口层映射为侧栏操作"
+    "Esc、上下左右键和回车必须在原生窗口层映射为侧栏操作"
 )
 
 print("通过：原生键盘命令映射")
@@ -320,6 +431,102 @@ expect(
         library.items.contains { $0.id == "pinned-address" },
     "首次内容库必须包含当前内置 Prompt 与收藏"
 )
+
+let engineeringPromptIDs: Set<String> = [
+    "effective-ai-collaboration-prompt",
+    "requirements-interview-prompt",
+    "explore-plan-implement-prompt",
+    "root-cause-debugging-prompt",
+    "code-review-prompt",
+    "test-generation-prompt",
+    "behavior-preserving-refactor-prompt"
+]
+let seededEngineeringPrompts = library.items.filter { engineeringPromptIDs.contains($0.id) }
+expect(
+    Set(seededEngineeringPrompts.map(\.id)) == engineeringPromptIDs &&
+        seededEngineeringPrompts.allSatisfy {
+            $0.category == .prompt &&
+                !$0.content
+                    .replacingOccurrences(of: "{{功能描述}}", with: "测试目标")
+                    .replacingOccurrences(of: "{{技术约束}}", with: "测试约束")
+                    .contains("{{")
+        },
+    "首次内容库必须包含可补全变量的 AI 协作与工程开发 Prompt"
+)
+
+print("通过：AI 协作与工程 Prompt 模板")
+
+let openAIPromptIDs: Set<String> = [
+    "gpt-5p6-outcome-contract-prompt",
+    "gpt-5p6-prompt-audit-prompt",
+    "gpt-5p6-grounded-research-prompt"
+]
+let seededOpenAIPrompts = library.items.filter { openAIPromptIDs.contains($0.id) }
+expect(
+    Set(seededOpenAIPrompts.map(\.id)) == openAIPromptIDs &&
+        seededOpenAIPrompts.allSatisfy {
+            $0.source == "OpenAI GPT-5.6 指南" &&
+                !$0.content
+                    .replacingOccurrences(of: "{{功能描述}}", with: "测试目标")
+                    .replacingOccurrences(of: "{{技术约束}}", with: "测试约束")
+                    .contains("{{")
+        },
+    "首次内容库必须包含来自 OpenAI GPT-5.6 指南的可补全 Prompt"
+)
+
+print("通过：OpenAI GPT-5.6 Prompt 模板")
+
+expect(
+    library.items
+        .filter { $0.category == .prompt }
+        .allSatisfy { $0.content.contains("\n\n") },
+    "内置 Prompt 必须使用空行区分目标、约束、步骤和输出等结构"
+)
+
+print("通过：内置 Prompt 分段结构")
+
+let composerPrompt = Clip(
+    id: "composer-test",
+    category: .prompt,
+    title: "独立编辑测试",
+    content: "目标：{{功能描述}}\n约束：{{技术约束}}",
+    source: "测试"
+)
+var composerState = PromptComposerState(prompt: composerPrompt)
+expect(
+    composerState.requiresFeatureDescription &&
+        composerState.requiresTechnicalConstraint &&
+        !composerState.canSubmit,
+    "Prompt 编辑器必须识别必填变量并阻止直接提交占位符"
+)
+
+composerState.featureDescription = "第一行目标\n第二行包含更多细节"
+composerState.technicalConstraint = "保持现有接口\n兼容 macOS 14"
+composerState.additionalContext = "错误日志第一行\n错误日志第二行"
+expect(
+    composerState.canSubmit &&
+        composerState.resolvedContent.contains("第一行目标\n第二行包含更多细节") &&
+        composerState.resolvedContent.contains("保持现有接口\n兼容 macOS 14") &&
+        composerState.resolvedContent.hasSuffix("补充上下文：\n错误日志第一行\n错误日志第二行") &&
+        !composerState.preparedClip.content.contains("{{"),
+    "独立 Prompt 编辑器必须保留多行输入、附加上下文并生成完整内容"
+)
+
+print("通过：独立 Prompt 编辑状态")
+
+let standardPanelSize = QuickPanelController.panelSize(
+    for: NSRect(x: 0, y: 0, width: 1440, height: 900)
+)
+let compactPanelSize = QuickPanelController.panelSize(
+    for: NSRect(x: 0, y: 0, width: 400, height: 500)
+)
+expect(
+    standardPanelSize == NSSize(width: 420, height: 864) &&
+        compactPanelSize == NSSize(width: 364, height: 500),
+    "快捷面板必须保持目标宽度，并根据当前屏幕可见高度自适应且不越界"
+)
+
+print("通过：快捷面板屏幕高度适配")
 
 let createdPrompt = library.create(category: .prompt, title: "测试 Prompt", content: "请解释 {{内容}}")
 expect(
@@ -377,3 +584,169 @@ expect(
 )
 
 print("通过：内容库本地持久化")
+
+let migrationLibrarySuiteName = "funPaste.tests.prompt-library-migration"
+let migrationLibraryDefaults = UserDefaults(suiteName: migrationLibrarySuiteName)!
+migrationLibraryDefaults.removePersistentDomain(forName: migrationLibrarySuiteName)
+let legacyLibrary = ContentLibrary(items: [
+    Clip(
+        id: "plain-language-prompt",
+        category: .prompt,
+        title: "把复杂内容说清楚",
+        content: "旧版内置 Prompt",
+        source: "内置 Prompt"
+    )
+])
+migrationLibraryDefaults.set(try! JSONEncoder().encode(legacyLibrary), forKey: "funPaste.library")
+
+let migratedLibraryStore = ClipboardStore(defaults: migrationLibraryDefaults)
+expect(
+    engineeringPromptIDs.isSubset(of: Set(migratedLibraryStore.library.items.map(\.id))) &&
+        !migratedLibraryStore.library.items.contains { $0.id == "development-prompt" },
+    "升级旧内容库时必须补齐新 Prompt，但不能复活用户已删除的旧模板"
+)
+
+migratedLibraryStore.deleteLibraryItem(id: "code-review-prompt")
+let reloadedMigratedLibraryStore = ClipboardStore(defaults: migrationLibraryDefaults)
+expect(
+    !reloadedMigratedLibraryStore.library.items.contains { $0.id == "code-review-prompt" } &&
+        reloadedMigratedLibraryStore.library.items.filter { engineeringPromptIDs.contains($0.id) }.count == engineeringPromptIDs.count - 1,
+    "Prompt 模板迁移只能执行一次，用户删除后不得再次出现"
+)
+
+migrationLibraryDefaults.removePersistentDomain(forName: migrationLibrarySuiteName)
+
+print("通过：Prompt 模板库升级迁移")
+
+let openAIMigrationSuiteName = "funPaste.tests.openai-prompt-migration"
+let openAIMigrationDefaults = UserDefaults(suiteName: openAIMigrationSuiteName)!
+openAIMigrationDefaults.removePersistentDomain(forName: openAIMigrationSuiteName)
+openAIMigrationDefaults.set(try! JSONEncoder().encode(legacyLibrary), forKey: "funPaste.library")
+openAIMigrationDefaults.set(1, forKey: "funPaste.librarySeedVersion")
+
+let openAIMigratedStore = ClipboardStore(defaults: openAIMigrationDefaults)
+expect(
+    openAIPromptIDs.isSubset(of: Set(openAIMigratedStore.library.items.map(\.id))),
+    "版本 1 内容库升级时必须补齐 OpenAI GPT-5.6 Prompt"
+)
+
+openAIMigratedStore.deleteLibraryItem(id: "gpt-5p6-prompt-audit-prompt")
+let reloadedOpenAIMigratedStore = ClipboardStore(defaults: openAIMigrationDefaults)
+expect(
+    !reloadedOpenAIMigratedStore.library.items.contains { $0.id == "gpt-5p6-prompt-audit-prompt" },
+    "OpenAI Prompt 迁移只能执行一次，用户删除后不得再次出现"
+)
+
+openAIMigrationDefaults.removePersistentDomain(forName: openAIMigrationSuiteName)
+
+print("通过：OpenAI Prompt 模板升级迁移")
+
+let legacyClipJSON = """
+{"id":"legacy-json","category":"prompt","title":"旧 Prompt","content":"旧内容","source":"旧版本"}
+""".data(using: .utf8)!
+let decodedLegacyClip = try! JSONDecoder().decode(Clip.self, from: legacyClipJSON)
+expect(
+    decodedLegacyClip.promptMetadata == nil,
+    "新增 Prompt 元数据后必须仍能解码旧版 Clip 数据"
+)
+
+var organizedLibrary = ContentLibrary()
+let duplicateOriginal = organizedLibrary.create(
+    category: .prompt,
+    title: "原始 Prompt",
+    content: "请分析   这段内容\n并给出结论",
+    promptMetadata: PromptMetadata(collection: .research, tags: ["研究", " 证据 ", "研究"])
+)
+expect(
+    organizedLibrary.duplicatePrompt(content: "请分析 这段内容 并给出结论")?.id == duplicateOriginal.id &&
+        organizedLibrary.items.first?.promptMetadata?.tags == ["研究", "证据"],
+    "重复检测必须忽略空白差异，标签必须去空和去重"
+)
+
+organizedLibrary.togglePromptFavorite(id: duplicateOriginal.id)
+organizedLibrary.recordPromptUse(id: duplicateOriginal.id, at: Date(timeIntervalSince1970: 100))
+expect(
+    organizedLibrary.prompts(favoritesOnly: true).map(\.id) == [duplicateOriginal.id] &&
+        organizedLibrary.prompts(query: "证据").map(\.id) == [duplicateOriginal.id] &&
+        organizedLibrary.items.first?.promptMetadata?.useCount == 1,
+    "Prompt 收藏、标签搜索和使用次数必须同步生效"
+)
+
+organizedLibrary.setPromptArchived(id: duplicateOriginal.id, isArchived: true)
+expect(
+    organizedLibrary.prompts().isEmpty &&
+        organizedLibrary.prompts(archived: true).map(\.id) == [duplicateOriginal.id],
+    "归档 Prompt 必须从正常列表隐藏，并只出现在已归档视图"
+)
+
+var largeLibrary = ContentLibrary()
+for index in 0..<200 {
+    _ = largeLibrary.create(
+        category: .prompt,
+        title: "工程模板 \(index)",
+        content: "处理模块 \(index)",
+        promptMetadata: PromptMetadata(
+            collection: index.isMultiple(of: 2) ? .development : .writing,
+            tags: [index.isMultiple(of: 5) ? "高频" : "常规"]
+        )
+    )
+}
+expect(
+    largeLibrary.prompts(collection: .development).count == 100 &&
+        largeLibrary.prompts(query: "高频").count == 40 &&
+        largeLibrary.prompts(query: "工程 199").map(\.title) == ["工程模板 199"],
+    "200 条 Prompt 下分类、标签和多关键词搜索结果必须准确"
+)
+
+let metadataMigrationSuiteName = "funPaste.tests.prompt-metadata-migration"
+let metadataMigrationDefaults = UserDefaults(suiteName: metadataMigrationSuiteName)!
+metadataMigrationDefaults.removePersistentDomain(forName: metadataMigrationSuiteName)
+let versionTwoLibrary = ContentLibrary(items: [
+    Clip(
+        id: "custom-version-two",
+        category: .prompt,
+        title: "旧自定义 Prompt",
+        content: "用户内容",
+        source: "自定义 Prompt"
+    ),
+    Clip(
+        id: "gpt-5p6-grounded-research-prompt",
+        category: .prompt,
+        title: "做有证据边界的研究",
+        content: "旧研究内容",
+        source: "OpenAI GPT-5.6 指南"
+    )
+])
+metadataMigrationDefaults.set(try! JSONEncoder().encode(versionTwoLibrary), forKey: "funPaste.library")
+metadataMigrationDefaults.set(2, forKey: "funPaste.librarySeedVersion")
+let metadataMigratedStore = ClipboardStore(defaults: metadataMigrationDefaults)
+expect(
+    metadataMigratedStore.library.items.first { $0.id == "custom-version-two" }?.promptMetadata?.collection == .inbox &&
+        metadataMigratedStore.library.items.first { $0.id == "gpt-5p6-grounded-research-prompt" }?.promptMetadata?.collection == .research,
+    "版本 2 内容库升级时必须把自定义 Prompt 放入收件箱，并保留内置模板的推荐分类"
+)
+let metadataReloadedStore = ClipboardStore(defaults: metadataMigrationDefaults)
+expect(
+    metadataReloadedStore.library.items.count == metadataMigratedStore.library.items.count,
+    "Prompt 元数据迁移只能执行一次，重新加载不得添加或复活条目"
+)
+metadataMigrationDefaults.removePersistentDomain(forName: metadataMigrationSuiteName)
+
+let formattingMigrationSuiteName = "funPaste.tests.prompt-formatting-migration"
+let formattingMigrationDefaults = UserDefaults(suiteName: formattingMigrationSuiteName)!
+formattingMigrationDefaults.removePersistentDomain(forName: formattingMigrationSuiteName)
+let flatBuiltIn = Clip.builtInPromptTemplates.first { $0.id == "gpt-5p6-outcome-contract-prompt" }!
+formattingMigrationDefaults.set(
+    try! JSONEncoder().encode(ContentLibrary(items: [flatBuiltIn])),
+    forKey: "funPaste.library"
+)
+formattingMigrationDefaults.set(3, forKey: "funPaste.librarySeedVersion")
+let formattingMigratedStore = ClipboardStore(defaults: formattingMigrationDefaults)
+expect(
+    formattingMigratedStore.library.items.first?.content.contains("\n\n目标：") == true &&
+        formattingMigratedStore.library.items.count == 1,
+    "版本 3 内容库升级时必须为已有内置 Prompt 增加段落，且不得补回其他条目"
+)
+formattingMigrationDefaults.removePersistentDomain(forName: formattingMigrationSuiteName)
+
+print("通过：Prompt 分类、标签、收藏、归档、搜索、重复检测与版本 4 迁移")

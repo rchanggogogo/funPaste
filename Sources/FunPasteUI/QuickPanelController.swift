@@ -15,7 +15,16 @@ public final class QuickPanelController {
     public static let restingActivationPolicy: NSApplication.ActivationPolicy = .accessory
     public static let defaultCategoryOnOpen: ClipCategory = .recent
 
+    public static func panelSize(for visibleFrame: NSRect) -> NSSize {
+        let inset: CGFloat = 18
+        let width = min(420, max(0, visibleFrame.width - inset * 2))
+        let desiredHeight = visibleFrame.height - inset * 2
+        let height = min(visibleFrame.height, max(520, desiredHeight))
+        return NSSize(width: width, height: height)
+    }
+
     private let store: ClipboardStore
+    private let promptComposerController: PromptComposerController
     private var panel: NSPanel?
     private var pasteTargetApplication: NSRunningApplication?
     private var pasteTargetState = PasteTargetState()
@@ -26,6 +35,7 @@ public final class QuickPanelController {
 
     public init(store: ClipboardStore) {
         self.store = store
+        self.promptComposerController = PromptComposerController()
         didBecomeActiveObserver = NotificationCenter.default.addObserver(
             forName: NSApplication.didBecomeActiveNotification,
             object: NSApp,
@@ -43,9 +53,13 @@ public final class QuickPanelController {
             }
         }
         localKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            if [UInt16(123), UInt16(124)].contains(event.keyCode),
+               self?.panel?.firstResponder is NSTextView {
+                return event
+            }
             guard
                 let self,
-                self.panel?.isVisible == true,
+                self.panel?.isKeyWindow == true,
                 let command = PanelKeyCommand(
                     keyCode: event.keyCode,
                     shiftPressed: event.modifierFlags.contains(.shift)
@@ -71,13 +85,12 @@ public final class QuickPanelController {
         rememberPasteTarget(NSWorkspace.shared.frontmostApplication)
         panelLogger.notice("开始显示面板，目标进程：\(self.pasteTargetState.processIdentifier ?? -1)")
 
-        let panel = makePanelIfNeeded()
-        let panelSize = NSSize(width: 420, height: 640)
-        panel.setContentSize(panelSize)
-
         let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main
+        let panel = makePanelIfNeeded()
         if let screen {
             let frame = screen.visibleFrame
+            let panelSize = Self.panelSize(for: frame)
+            panel.setContentSize(panelSize)
             panel.setFrameOrigin(
                 NSPoint(
                     x: frame.maxX - panelSize.width - 18,
@@ -104,6 +117,7 @@ public final class QuickPanelController {
 
     public func dismiss() {
         isWaitingToPresent = false
+        promptComposerController.close()
         panel?.orderOut(nil)
         if Self.requiresApplicationActivation {
             NSApp.setActivationPolicy(Self.restingActivationPolicy)
@@ -122,12 +136,14 @@ public final class QuickPanelController {
     }
 
     private func dismissIfClickedOutsidePanel() {
+        guard !promptComposerController.isVisible else { return }
         guard let panel, panel.isVisible, !panel.frame.contains(NSEvent.mouseLocation) else { return }
         dismiss()
     }
 
     private func prepareForPaste(_ completion: @escaping @MainActor () -> Void) {
         isWaitingToPresent = false
+        promptComposerController.close()
         panel?.orderOut(nil)
         guard let target = pasteTargetApplication, !target.isTerminated else {
             panelLogger.error("没有可恢复的粘贴目标")
@@ -207,10 +223,41 @@ public final class QuickPanelController {
                 self?.dismiss()
             }, prepareForPaste: { [weak self] completion in
                 self?.prepareForPaste(completion)
+            }, onUsePrompt: { [weak self] prompt in
+                self?.showPromptComposer(prompt)
             })
         )
         self.panel = panel
         return panel
+    }
+
+    private func showPromptComposer(_ prompt: Clip) {
+        promptComposerController.show(
+            prompt: prompt,
+            onCancel: {},
+            onCopy: { [weak self] preparedPrompt in
+                guard let self else { return }
+                self.store.copy(preparedPrompt)
+                self.store.recordPromptUse(id: prompt.id)
+                self.promptComposerController.close()
+                self.dismiss()
+            },
+            onPaste: { [weak self] preparedPrompt in
+                guard let self else { return }
+                self.promptComposerController.close()
+                self.store.recordPromptUse(id: prompt.id)
+                self.store.paste(preparedPrompt) { [weak self] completion in
+                    guard let self else {
+                        completion()
+                        return
+                    }
+                    self.prepareForPaste(completion)
+                }
+            },
+            onWindowClosed: { [weak self] in
+                self?.panel?.makeKeyAndOrderFront(nil)
+            }
+        )
     }
 
     private func presentPanelAfterActivation() {
