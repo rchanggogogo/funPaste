@@ -1,0 +1,47 @@
+name: Bug 报告
+description: 报告可以稳定复现的问题
+title: "bug: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: 感谢你帮助改进 funPaste。请勿在 Issue 中粘贴密码、Token 或真实剪贴板内容。
+  - type: input
+    id: version
+    attributes:
+      label: funPaste 版本
+      placeholder: 例如 v1.0.2
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS 版本和 Mac 芯片
+      placeholder: 例如 macOS 15.5，Apple M2
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 请使用不敏感的示例内容复现问题。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期行为
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际行为
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: 补充信息
+      description: 可提供已脱敏的日志、截图或录屏。
