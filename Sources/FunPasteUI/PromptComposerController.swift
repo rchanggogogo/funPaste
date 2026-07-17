@@ -56,7 +56,7 @@ public final class PromptComposerController: NSObject, NSWindowDelegate {
             backing: .buffered,
             defer: false
         )
-        panel.title = "使用 Prompt"
+        panel.title = FunPasteLocalization.string("promptComposer.title")
         panel.titlebarAppearsTransparent = true
         panel.isReleasedWhenClosed = false
         panel.isFloatingPanel = true

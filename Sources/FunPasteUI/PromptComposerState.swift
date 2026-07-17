@@ -11,11 +11,11 @@ public struct PromptComposerState: Sendable {
     }
 
     public var requiresFeatureDescription: Bool {
-        prompt.content.contains("{{功能描述}}")
+        Self.featureDescriptionVariables.contains { prompt.content.contains($0) }
     }
 
     public var requiresTechnicalConstraint: Bool {
-        prompt.content.contains("{{技术约束}}")
+        Self.technicalConstraintVariables.contains { prompt.content.contains($0) }
     }
 
     public var canSubmit: Bool {
@@ -24,12 +24,15 @@ public struct PromptComposerState: Sendable {
     }
 
     public var resolvedContent: String {
-        var content = prompt.content
-            .replacingOccurrences(of: "{{功能描述}}", with: trimmedFeatureDescription)
-            .replacingOccurrences(of: "{{技术约束}}", with: trimmedTechnicalConstraint)
+        var content = Self.featureDescriptionVariables.reduce(prompt.content) {
+            $0.replacingOccurrences(of: $1, with: trimmedFeatureDescription)
+        }
+        content = Self.technicalConstraintVariables.reduce(content) {
+            $0.replacingOccurrences(of: $1, with: trimmedTechnicalConstraint)
+        }
 
         if !trimmedAdditionalContext.isEmpty {
-            content += "\n\n补充上下文：\n\(trimmedAdditionalContext)"
+            content += "\n\n\(FunPasteLocalization.string("promptComposer.additionalSection"))\n\(trimmedAdditionalContext)"
         }
         return content
     }
@@ -58,4 +61,7 @@ public struct PromptComposerState: Sendable {
     private var trimmedAdditionalContext: String {
         additionalContext.trimmingCharacters(in: .whitespacesAndNewlines)
     }
+
+    private static let featureDescriptionVariables = ["{{功能描述}}", "{{feature description}}"]
+    private static let technicalConstraintVariables = ["{{技术约束}}", "{{technical constraints}}"]
 }

@@ -15,8 +15,11 @@ public struct ContentLibrary: Sendable, Codable {
                 guard item.category == .prompt else { return item }
                 var metadata = builtInPromptMetadata[item.id] ?? PromptMetadata(collection: .inbox)
                 metadata.manualOrder = index
+                let content = item.content.contains("\n")
+                    ? item.content
+                    : Clip.formattedBuiltInPromptContent(id: item.id, content: item.content)
                 return item
-                    .replacingContent(Clip.formattedBuiltInPromptContent(id: item.id, content: item.content))
+                    .replacingContent(content)
                     .replacingPromptMetadata(metadata)
             }
         return ContentLibrary(items: enrichedItems)
@@ -26,18 +29,18 @@ public struct ContentLibrary: Sendable, Codable {
         let claudeURL = "https://code.claude.com/docs/en/best-practices"
         let openAIURL = "https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6"
         return [
-            "development-prompt": PromptMetadata(collection: .development, tags: ["功能开发", "实现"]),
-            "plain-language-prompt": PromptMetadata(collection: .writing, tags: ["解释", "初学者"]),
-            "effective-ai-collaboration-prompt": PromptMetadata(collection: .development, tags: ["协作", "验收"], sourceURL: claudeURL),
-            "requirements-interview-prompt": PromptMetadata(collection: .productDesign, tags: ["需求", "访谈"], sourceURL: claudeURL),
-            "explore-plan-implement-prompt": PromptMetadata(collection: .development, tags: ["规划", "实现"], sourceURL: claudeURL),
-            "root-cause-debugging-prompt": PromptMetadata(collection: .development, tags: ["调试", "根因"], sourceURL: claudeURL),
-            "code-review-prompt": PromptMetadata(collection: .development, tags: ["代码审查", "质量"]),
-            "test-generation-prompt": PromptMetadata(collection: .development, tags: ["测试", "回归"]),
-            "behavior-preserving-refactor-prompt": PromptMetadata(collection: .development, tags: ["重构", "兼容性"]),
-            "gpt-5p6-outcome-contract-prompt": PromptMetadata(collection: .development, tags: ["结果契约", "交付"], sourceURL: openAIURL),
-            "gpt-5p6-prompt-audit-prompt": PromptMetadata(collection: .development, tags: ["Prompt 优化", "评估"], sourceURL: openAIURL),
-            "gpt-5p6-grounded-research-prompt": PromptMetadata(collection: .research, tags: ["研究", "证据"], sourceURL: openAIURL)
+            "development-prompt": PromptMetadata(collection: .development, tags: localizedTags("prompt.tags.development")),
+            "plain-language-prompt": PromptMetadata(collection: .writing, tags: localizedTags("prompt.tags.plainLanguage")),
+            "effective-ai-collaboration-prompt": PromptMetadata(collection: .development, tags: localizedTags("prompt.tags.collaboration"), sourceURL: claudeURL),
+            "requirements-interview-prompt": PromptMetadata(collection: .productDesign, tags: localizedTags("prompt.tags.requirements"), sourceURL: claudeURL),
+            "explore-plan-implement-prompt": PromptMetadata(collection: .development, tags: localizedTags("prompt.tags.planning"), sourceURL: claudeURL),
+            "root-cause-debugging-prompt": PromptMetadata(collection: .development, tags: localizedTags("prompt.tags.debugging"), sourceURL: claudeURL),
+            "code-review-prompt": PromptMetadata(collection: .development, tags: localizedTags("prompt.tags.codeReview")),
+            "test-generation-prompt": PromptMetadata(collection: .development, tags: localizedTags("prompt.tags.testing")),
+            "behavior-preserving-refactor-prompt": PromptMetadata(collection: .development, tags: localizedTags("prompt.tags.refactor")),
+            "gpt-5p6-outcome-contract-prompt": PromptMetadata(collection: .development, tags: localizedTags("prompt.tags.outcome"), sourceURL: openAIURL),
+            "gpt-5p6-prompt-audit-prompt": PromptMetadata(collection: .development, tags: localizedTags("prompt.tags.audit"), sourceURL: openAIURL),
+            "gpt-5p6-grounded-research-prompt": PromptMetadata(collection: .research, tags: localizedTags("prompt.tags.research"), sourceURL: openAIURL)
         ]
     }()
 
@@ -54,7 +57,9 @@ public struct ContentLibrary: Sendable, Codable {
             category: category,
             title: title,
             content: content,
-            source: category == .prompt ? "自定义 Prompt" : "收藏",
+            source: FunPasteLocalization.string(
+                category == .prompt ? "library.source.customPrompt" : "library.source.favorite"
+            ),
             promptMetadata: category == .prompt ? (promptMetadata ?? PromptMetadata()) : nil
         )
         items.insert(clip, at: 0)
@@ -226,7 +231,7 @@ public struct ContentLibrary: Sendable, Codable {
             category: .pinned,
             title: clip.title,
             content: clip.content,
-            source: "收藏",
+            source: FunPasteLocalization.string("library.source.favorite"),
             imageData: clip.imageData,
             fileURLs: clip.fileURLs
         )
@@ -240,4 +245,8 @@ public struct ContentLibrary: Sendable, Codable {
         items.removeAll { $0.category == .pinned && $0.content == clip.content }
         return items.count != countBeforeRemoval
     }
+}
+
+private func localizedTags(_ key: String) -> [String] {
+    FunPasteLocalization.string(key).split(separator: ",").map(String.init)
 }

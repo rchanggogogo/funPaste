@@ -48,7 +48,7 @@ public struct PromptComposerView: View {
                 .frame(width: 42, height: 42)
                 .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 11, style: .continuous))
             VStack(alignment: .leading, spacing: 3) {
-                Text("使用 Prompt")
+                Text(FunPasteLocalization.string("promptComposer.title"))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(FunPasteTheme.lilac)
                 Text(state.prompt.title)
@@ -64,7 +64,10 @@ public struct PromptComposerView: View {
     }
 
     private var templateContext: some View {
-        editorSection(title: "模板上下文", description: "模板保持只读，填写内容只会生成一次性的 Prompt。") {
+        editorSection(
+            title: FunPasteLocalization.string("promptComposer.templateContext"),
+            description: FunPasteLocalization.string("promptComposer.templateDescription")
+        ) {
             Text(state.prompt.content)
                 .font(.body)
                 .foregroundStyle(.primary.opacity(0.9))
@@ -77,25 +80,48 @@ public struct PromptComposerView: View {
 
     @ViewBuilder private var variableEditors: some View {
         if state.requiresFeatureDescription {
-            editorSection(title: "功能描述", description: "替换模板中的 {{功能描述}}") {
-                multilineEditor(text: $state.featureDescription, guidance: "详细描述目标、用户场景和期望结果")
+            editorSection(
+                title: FunPasteLocalization.string("promptComposer.featureDescription"),
+                description: FunPasteLocalization.string("promptComposer.featureVariable")
+            ) {
+                multilineEditor(
+                    text: $state.featureDescription,
+                    guidance: FunPasteLocalization.string("promptComposer.featureGuidance")
+                )
             }
         }
         if state.requiresTechnicalConstraint {
-            editorSection(title: "技术约束", description: "替换模板中的 {{技术约束}}") {
-                multilineEditor(text: $state.technicalConstraint, guidance: "填写技术栈、兼容性、范围或不能改变的行为")
+            editorSection(
+                title: FunPasteLocalization.string("promptComposer.technicalConstraints"),
+                description: FunPasteLocalization.string("promptComposer.technicalVariable")
+            ) {
+                multilineEditor(
+                    text: $state.technicalConstraint,
+                    guidance: FunPasteLocalization.string("promptComposer.technicalGuidance")
+                )
             }
         }
     }
 
     private var additionalContextEditor: some View {
-        editorSection(title: "补充上下文", description: "可选。粘贴日志、代码、参考资料或其他长文本。") {
-            multilineEditor(text: $state.additionalContext, guidance: "输入或粘贴补充信息")
+        editorSection(
+            title: FunPasteLocalization.string("promptComposer.additionalContext"),
+            description: FunPasteLocalization.string("promptComposer.additionalDescription")
+        ) {
+            multilineEditor(
+                text: $state.additionalContext,
+                guidance: FunPasteLocalization.string("promptComposer.additionalGuidance")
+            )
         }
     }
 
     private var resultPreview: some View {
-        editorSection(title: "生成结果预览", description: state.canSubmit ? "将复制或粘贴以下完整内容。" : "请先填写模板中的必填变量。") {
+        editorSection(
+            title: FunPasteLocalization.string("promptComposer.preview"),
+            description: FunPasteLocalization.string(
+                state.canSubmit ? "promptComposer.previewReady" : "promptComposer.previewIncomplete"
+            )
+        ) {
             Text(state.resolvedContent)
                 .font(.body.monospaced())
                 .foregroundStyle(state.canSubmit ? Color.primary.opacity(0.9) : Color.secondary)
@@ -108,12 +134,12 @@ public struct PromptComposerView: View {
 
     private var actions: some View {
         HStack(spacing: 12) {
-            Button("取消", action: onCancel)
+            Button(FunPasteLocalization.string("common.cancel"), action: onCancel)
                 .keyboardShortcut(.cancelAction)
             Spacer()
-            Button("复制") { onCopy(state.preparedClip) }
+            Button(FunPasteLocalization.string("common.copy")) { onCopy(state.preparedClip) }
                 .disabled(!state.canSubmit)
-            Button("生成并粘贴") { onPaste(state.preparedClip) }
+            Button(FunPasteLocalization.string("promptComposer.generateAndPaste")) { onPaste(state.preparedClip) }
                 .buttonStyle(.borderedProminent)
                 .tint(FunPasteTheme.accent)
                 .foregroundStyle(FunPasteTheme.ink)
@@ -140,7 +166,7 @@ public struct PromptComposerView: View {
 
     private func multilineEditor(text: Binding<String>, guidance: String) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("填写提示：\(guidance)")
+            Text(FunPasteLocalization.format("promptComposer.guidance", guidance))
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .allowsHitTesting(false)

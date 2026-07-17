@@ -1,12 +1,16 @@
+<p align="right">
+  <strong>English</strong> | <a href="README.zh-CN.md">简体中文</a>
+</p>
+
 <p align="center">
-  <img src="Assets/AppIcon/app-icon-1024.png" width="112" alt="funPaste 图标">
+  <img src="Assets/AppIcon/app-icon-1024.png" width="112" alt="funPaste icon">
 </p>
 
 <h1 align="center">funPaste</h1>
 
 <p align="center">
-  <strong>复制只是开始。</strong><br>
-  把剪贴历史、常用内容和 Prompt 留在手边，一次快捷键，随时找回并粘贴。
+  <strong>Copying is only the beginning.</strong><br>
+  Keep clipboard history, reusable content, and prompts one shortcut away.
 </p>
 
 <p align="center">
@@ -19,39 +23,40 @@
 <p align="center"><kbd>⇧ Shift</kbd> + <kbd>⌘ Command</kbd> + <kbd>V</kbd></p>
 
 <p align="center">
-  <img src="Assets/README/hero.svg" width="100%" alt="funPaste 快捷粘贴面板预览">
+  <img src="Assets/README/hero.svg" width="100%" alt="funPaste quick-paste panel preview">
 </p>
 
-## 为什么是 funPaste？
+## Why funPaste?
 
-很多剪贴板工具只是把复制记录排成一张长列表。funPaste 更像一副随手展开的内容卡组：刚复制的文字、截图、收藏和 Prompt 都在同一个面板里，键盘就能完成查找、选择和粘贴。
+Many clipboard managers turn everything you copy into one long list. funPaste works more like a deck of content cards: recent text, images, files, favorites, and prompts stay together in one keyboard-first panel.
 
-| ⚡ 不打断思路 | ✦ Prompt 也是一等公民 | ◉ 本地优先 |
+| ⚡ Stay in flow | ✦ Prompts are first-class content | ◉ Local-first |
 | --- | --- | --- |
-| 从任何 App 按 `Shift + Command + V` 唤起，方向键选择，`Enter` 粘贴回原处。 | 保存常用 Prompt，用 `{{功能描述}}`、`{{技术约束}}` 在粘贴前快速补全。 | 当前没有账号、遥测、广告或网络同步；历史、Prompt 和收藏保存在本机。 |
+| Press `Shift + Command + V` from any app, select with the arrow keys, and press `Enter` to paste back where you were working. | Save reusable prompts and complete `{{feature description}}` and `{{technical constraints}}` before pasting. | No account, telemetry, ads, or network sync. Your history, prompts, and favorites remain on your Mac. |
 
-## 能做什么
+## Features
 
-- 记录文本和图片剪贴历史，重复内容自动置顶。
-- 搜索最近复制的内容，并用键盘快速选择。
-- 创建、编辑和删除自己的 Prompt 与收藏。
-- 一键收藏最近复制的文字或图片。
-- 在粘贴前补全 Prompt 变量。
-- 随时暂停记录或清空全部历史。
-- 以菜单栏 Agent 运行，不占用 Dock。
+- Records text, image, and file clipboard history and moves duplicates to the top.
+- Searches recent clipboard content with fast keyboard navigation.
+- Creates, edits, and deletes your own prompts and favorites.
+- Favorites recently copied text or images with one click.
+- Completes prompt variables before copying or pasting.
+- Pauses recording or clears all history at any time.
+- Runs as a menu bar agent without taking space in the Dock.
+- Automatically uses an English or Simplified Chinese interface based on the preferred macOS language.
 
-## 立即体验
+## Get started
 
-### 下载测试版
+### Download the beta
 
-支持 Apple 芯片和 Intel Mac，需要 macOS 14 或更高版本。
+funPaste supports Apple silicon and Intel Macs running macOS 14 or later.
 
-1. 从 [Releases](https://github.com/rchanggogogo/funPaste/releases) 下载最新 `.dmg`。
-2. 将 `funPaste.app` 拖入“应用程序”文件夹。
-3. 首次打开时按住 Control 点按 App，选择“打开”。当前测试版尚未经过 Apple 公证。
-4. 在“系统设置 → 隐私与安全性 → 辅助功能”中允许 funPaste；该权限仅用于自动粘贴。
+1. Download the latest `.dmg` from [Releases](https://github.com/rchanggogogo/funPaste/releases).
+2. Drag `funPaste.app` into the Applications folder.
+3. On first launch, Control-click the app and choose **Open**. The current beta is not notarized by Apple.
+4. Allow funPaste in **System Settings → Privacy & Security → Accessibility**. This permission is used only to paste automatically.
 
-### 从源码运行
+### Run from source
 
 ```sh
 git clone https://github.com/rchanggogogo/funPaste.git
@@ -59,54 +64,54 @@ cd funPaste
 swift run FunPastePreview
 ```
 
-启动后按 `Shift + Command + V`，或者先运行行为检查：
+Press `Shift + Command + V` after launch, or run the behavior checks first:
 
 ```sh
 swift run FunPasteUITestRunner
 ```
 
-## 快捷键
+## Keyboard shortcuts
 
-| 按键 | 动作 |
+| Shortcut | Action |
 | --- | --- |
-| `Shift + Command + V` | 打开或收起面板 |
-| `Tab` / `Shift + Tab` | 切换分类 |
-| `↑` / `↓` | 移动选择 |
-| `Enter` | 粘贴选中内容 |
-| `Esc` | 关闭面板 |
+| `Shift + Command + V` | Show or hide the panel |
+| `Tab` / `Shift + Tab` | Switch categories |
+| `↑` / `↓` | Move the selection |
+| `Enter` | Paste the selected content |
+| `Esc` | Close the panel |
 
-## 构建 macOS App
+## Build the macOS app
 
-创建本机可双击启动的 ad-hoc 签名 App：
+Create a locally runnable app with an ad-hoc signature:
 
 ```sh
 bash scripts/build-app.sh
 open dist/funPaste.app
 ```
 
-创建同时支持 Apple 芯片和 Intel Mac 的 DMG：
+Create a universal DMG for Apple silicon and Intel Macs:
 
 ```sh
 bash scripts/build-dmg.sh 1.0.0
 ```
 
-正式分发前仍需使用 Apple Developer 证书签名并完成公证。
+Public distribution still requires a Developer ID signature and Apple notarization.
 
-## 隐私不是脚注
+## Privacy is not a footnote
 
-funPaste 会接触你复制的内容，因此隐私边界必须说清楚：
+funPaste can access the content you copy, so its privacy boundaries should be explicit:
 
-- 当前应用代码不发起网络请求，也不记录剪贴板正文到日志。
-- 剪贴历史和内容库通过 macOS `UserDefaults` 持久化，应用层没有额外加密。
-- 敏感内容过滤只是启发式规则，不能保证识别所有密码、Token 或个人信息。
-- 辅助功能权限仅用于模拟 `Command + V`；拒绝后仍可复制并手动粘贴。
+- The app currently makes no network requests and does not write clipboard contents to logs.
+- Clipboard history and the content library are persisted through macOS `UserDefaults` without additional app-level encryption.
+- Sensitive-content filtering is heuristic and cannot identify every password, token, or piece of personal information.
+- Accessibility permission is used only to simulate `Command + V`; without it, you can still copy and paste manually.
 
-完整说明见 [PRIVACY.md](PRIVACY.md)。
+See [PRIVACY.md](PRIVACY.md) for the full disclosure.
 
-## 一起把它变得更顺手
+## Contributing
 
-Bug 报告、交互想法和 Pull Request 都欢迎。开始前请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)；安全问题请遵循 [SECURITY.md](SECURITY.md)，不要在公开 Issue 中披露漏洞细节。
+Bug reports, interaction ideas, and pull requests are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before getting started. Follow [SECURITY.md](SECURITY.md) for security reports instead of disclosing vulnerabilities in public issues.
 
 ## License
 
-funPaste 代码以 [MIT License](LICENSE) 开源。
+funPaste is available under the [MIT License](LICENSE).

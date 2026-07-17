@@ -10,12 +10,12 @@ public enum PromptCollection: String, CaseIterable, Codable, Sendable {
 
     public var label: String {
         switch self {
-        case .inbox: "收件箱"
-        case .development: "开发"
-        case .research: "研究"
-        case .writing: "写作"
-        case .productDesign: "产品设计"
-        case .personal: "个人"
+        case .inbox: FunPasteLocalization.string("collection.inbox")
+        case .development: FunPasteLocalization.string("collection.development")
+        case .research: FunPasteLocalization.string("collection.research")
+        case .writing: FunPasteLocalization.string("collection.writing")
+        case .productDesign: FunPasteLocalization.string("collection.productDesign")
+        case .personal: FunPasteLocalization.string("collection.personal")
         }
     }
 }
@@ -28,10 +28,10 @@ public enum PromptSortOrder: String, CaseIterable, Codable, Sendable {
 
     public var label: String {
         switch self {
-        case .smart: "智能排序"
-        case .recentlyUsed: "最近使用"
-        case .recentlyAdded: "最近添加"
-        case .name: "按名称"
+        case .smart: FunPasteLocalization.string("sort.smart")
+        case .recentlyUsed: FunPasteLocalization.string("sort.recentlyUsed")
+        case .recentlyAdded: FunPasteLocalization.string("sort.recentlyAdded")
+        case .name: FunPasteLocalization.string("sort.name")
         }
     }
 }

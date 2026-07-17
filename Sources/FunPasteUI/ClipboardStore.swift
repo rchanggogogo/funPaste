@@ -71,13 +71,13 @@ public final class ClipboardStore: ObservableObject {
     public func togglePause() {
         isPaused.toggle()
         defaults.set(isPaused, forKey: pauseKey)
-        showFeedback(isPaused ? "已暂停记录剪贴板" : "已恢复记录剪贴板")
+        showFeedback(FunPasteLocalization.string(isPaused ? "feedback.paused" : "feedback.resumed"))
     }
 
     public func clearHistory() {
         history = ClipHistory(maximumCount: history.maximumCount)
         persistHistory()
-        showFeedback("已清空剪贴历史")
+        showFeedback(FunPasteLocalization.string("feedback.historyCleared"))
     }
 
     public func setHistoryMaximumCount(_ maximumCount: Int) {
@@ -85,7 +85,7 @@ public final class ClipboardStore: ObservableObject {
         history = history.limited(to: maximumCount)
         defaults.set(maximumCount, forKey: Self.historyMaximumCountKey)
         persistHistory()
-        showFeedback("历史记录上限已设为 \(maximumCount) 条")
+        showFeedback(FunPasteLocalization.format("feedback.historyLimit", maximumCount))
     }
 
     @discardableResult
@@ -174,13 +174,13 @@ public final class ClipboardStore: ObservableObject {
                 refreshFileHistory()
             }
             guard !existingURLs.isEmpty else {
-                showFeedback("文件已被移动或删除，已从历史中移除")
+                showFeedback(FunPasteLocalization.string("feedback.fileMissing"))
                 return false
             }
             pasteboard.clearContents()
             let didWrite = pasteboard.writeObjects(existingURLs.map { $0 as NSURL })
             if existingURLs.count < fileURLs.count {
-                showFeedback("部分文件已失效，仅复制现有文件")
+                showFeedback(FunPasteLocalization.string("feedback.someFilesMissing"))
             }
             return didWrite
         }
@@ -223,7 +223,7 @@ public final class ClipboardStore: ObservableObject {
         keyUp?.flags = .maskCommand
         keyDown?.post(tap: .cghidEventTap)
         keyUp?.post(tap: .cghidEventTap)
-        showFeedback("已粘贴「\(clip.title)」")
+        showFeedback(FunPasteLocalization.format("feedback.pasted", clip.title))
     }
 
     public func showFeedback(_ message: String) {
