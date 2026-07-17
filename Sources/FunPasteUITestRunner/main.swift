@@ -14,7 +14,9 @@ expect(
         FunPasteLanguage.preferred(from: ["fr-FR"]) == .english &&
         FunPasteLocalization.hasCompleteTranslations &&
         FunPasteLocalization.string("menu.show", language: .english) == "Show funPaste" &&
-        FunPasteLocalization.string("menu.show", language: .simplifiedChinese) == "显示 funPaste",
+        FunPasteLocalization.string("menu.show", language: .simplifiedChinese) == "显示 funPaste" &&
+        FunPasteLocalization.string("prompt.plainLanguage.content", language: .english).contains("\n\n") &&
+        FunPasteLocalization.string("prompt.plainLanguage.content", language: .simplifiedChinese).contains("\n\n"),
     "本地化必须按系统首选语言选择简体中文，并为其他语言回退英文"
 )
 
