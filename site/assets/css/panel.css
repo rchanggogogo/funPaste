@@ -241,6 +241,14 @@
   filter: blur(1px);
   opacity: 0.2;
 }
+.clip-tone-violet { --tone: #9c79e0; }
+.clip-tone-mint { --tone: #67cba7; }
+.clip-tone-blue { --tone: #71a7f1; }
+.clip-tone-orange { --tone: #ff9f5b; }
+.clip-tone-pink { --tone: #e18db8; }
+.clip-tone-gold { --tone: #f3bc70; }
+.clip-tone-coral { --tone: #ed8875; }
+.clip-tone-periwinkle { --tone: #93a6f0; }
 .card-meta {
   display: flex;
   align-items: center;
@@ -290,6 +298,11 @@
   margin-top: 10px;
   border-radius: var(--r-sm);
   background: linear-gradient(120deg, #ed8875, #b9a6ff 60%, #67cba7);
+}
+.fallback-caption {
+  margin-top: 12px;
+  color: var(--muted);
+  text-align: center;
 }
 
 /* Prompt variable editor */

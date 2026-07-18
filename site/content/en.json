@@ -30,8 +30,7 @@
     "ctaPrimary": "Download for Mac",
     "ctaSecondary": "See how it works",
     "compat": "macOS 14+ · Apple silicon & Intel · beta, not notarized",
-    "visualAlt": "funPaste quick-paste panel preview",
-    "visualPlaceholderTag": "Replace with a real app screenshot"
+    "visualAlt": "funPaste quick-paste panel preview"
   },
   "pillars": {
     "heading": "Why funPaste",
@@ -99,7 +98,7 @@
       "Accessibility permission is used only to simulate Command+V; without it you can still copy and paste manually."
     ],
     "link": "Read the full privacy statement",
-    "linkHref": "https://github.com/rchanggogogo/funPaste/blob/main/PRIVACY.md"
+    "linkHref": "https://github.com/rchanggogogo/funPaste/blob/main/PRIVACY.en.md"
   },
   "download": {
     "heading": "Copy with one shortcut",
@@ -117,7 +116,7 @@
     "releasesHref": "https://github.com/rchanggogogo/funPaste/releases",
     "help": "Help",
     "privacy": "Privacy",
-    "privacyHref": "https://github.com/rchanggogogo/funPaste/blob/main/PRIVACY.md",
+    "privacyHref": "https://github.com/rchanggogogo/funPaste/blob/main/PRIVACY.en.md",
     "license": "MIT License",
     "langToggleLabel": "中文"
   },
@@ -178,8 +177,16 @@
       "selectHint": "Enter to select",
       "clickHint": "Click to select",
       "selectedToast": "Selected \"{title}\" (simulation)",
+      "plainSelectedToast": "Selected \"{title}\" as plain text (simulation)",
       "promptCopiedToast": "Prompt copied (simulation)",
       "promptGeneratedToast": "Prompt generated (simulation)",
+      "promptCopyFailedToast": "Copy was blocked by the browser",
+      "featurePrefix": "Feature",
+      "constraintPrefix": "Constraints",
+      "generatedTitle": "Completed prompt",
+      "generatedType": "Text",
+      "generatedSource": "Prompt simulation",
+      "generatedTime": "Just now",
       "emptyTitle": "No matches",
       "emptyBody": "Try another keyword, or browse all items."
     }

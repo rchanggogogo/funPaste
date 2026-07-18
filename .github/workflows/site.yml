@@ -3,7 +3,7 @@ name: Site
 # Deploys the funPaste marketing site to GitHub Pages.
 # Source: site/  Build: scripts/build-site.{sh,mjs}  Output: site-dist/
 # Triggers:
-#   - main push touching site sources, the build script, shared tokens, or PRIVACY.md
+#   - main push touching site sources, the build script, shared tokens, or privacy policies
 #   - successful completion of the Release workflow (advances the direct DMG link)
 #   - manual dispatch
 # docs/plans/** intentionally do NOT trigger a production deploy.
@@ -16,6 +16,7 @@ on:
       - 'scripts/build-site.sh'
       - 'scripts/build-site.mjs'
       - 'PRIVACY.md'
+      - 'PRIVACY.en.md'
   workflow_run:
     workflows: ["Release"]
     types: [completed]

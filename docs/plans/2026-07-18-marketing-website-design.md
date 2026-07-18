@@ -9,7 +9,7 @@
 
 1. **Primary goal** — Convert qualified Mac visitors into downloads while building enough trust for an ad-hoc-signed, unnotarized app.
 2. **Launch scope** — Bilingual landing page plus a bilingual setup/help page. No independent privacy or changelog page in the MVP.
-3. **Privacy** — The landing page explains the app's core privacy and permission behavior, then links to the repository's canonical `PRIVACY.md`.
+3. **Privacy** — The landing page explains the app's core privacy and permission behavior, then links to the matching repository policy: `PRIVACY.en.md` for English and `PRIVACY.md` for Chinese.
 4. **Language** — English is available at the site root and Simplified Chinese under `zh/`. Both are pre-rendered static HTML.
 5. **Hero** — Lightweight static visual on first paint. The interactive panel simulation lives below the fold.
 6. **Hosting** — GitHub Pages project site at `https://rchanggogogo.github.io/funPaste/`.
@@ -100,7 +100,7 @@ https://rchanggogogo.github.io/funPaste/zh/help/   Chinese setup guide
    - Clearly scope claims to **the app**: no account, telemetry, ads, network sync, or clipboard-body logging.
    - State that history is stored locally through macOS preferences without additional app-level encryption.
    - Explain that sensitive-content filtering is heuristic.
-   - Link to the canonical GitHub `PRIVACY.md`; do not duplicate the full policy into another manually maintained page.
+   - Link to the matching GitHub policy (`PRIVACY.en.md` or `PRIVACY.md`); do not duplicate either full policy into a website page.
    - Before launch, update `PRIVACY.md` so its data list includes file clipboard history as well as text and images.
 
 7. **Final download and footer**
@@ -205,7 +205,7 @@ python3 -m http.server --directory site-dist
 Use a separate `.github/workflows/site.yml`:
 
 - **Triggers**
-  - Push to `main` affecting `site/**`, `scripts/build-site.sh`, shared preview tokens, or `PRIVACY.md`.
+  - Push to `main` affecting `site/**`, `scripts/build-site.sh`, shared preview tokens, `PRIVACY.md`, or `PRIVACY.en.md`.
   - Successful completion of the `Release` workflow, so the direct download URL advances after a new release.
   - `workflow_dispatch` for manual recovery.
 - **Runner:** `ubuntu-latest`.
@@ -249,7 +249,7 @@ Use a separate `.github/workflows/site.yml`:
 - [ ] Hero shows the promise, direct DMG CTA, `⇧⌘V`, compatibility, and notarization status in the first viewport.
 - [ ] Direct CTA resolves to the latest universal DMG; Releases fallback is always present.
 - [ ] Install steps match behavior verified on a clean macOS account.
-- [ ] Privacy claims match README and the updated canonical `PRIVACY.md`.
+- [ ] Privacy claims match the localized README and privacy policy.
 - [ ] No page calls the browser simulation the real app or claims it can paste into another application.
 
 ### Paths and language

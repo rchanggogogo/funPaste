@@ -172,16 +172,6 @@ img, svg { max-width: 100%; display: block; }
   box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4);
 }
 .hero-visual img, .hero-visual svg { width: 100%; height: auto; }
-.hero-visual .placeholder-tag {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  padding: 4px 9px;
-  border-radius: var(--r-pill);
-  background: rgba(0, 0, 0, 0.55);
-  color: var(--muted);
-  font-size: 11px;
-}
 
 /* Pillars (why funPaste) */
 .pillars { display: grid; gap: 18px; }
@@ -248,6 +238,7 @@ img, svg { max-width: 100%; display: block; }
 }
 .step h3 { margin: 0 0 6px; font-size: 16px; }
 .step p { margin: 0; color: var(--muted); font-size: 14px; }
+.install-help { margin-top: 20px; }
 
 /* Privacy block */
 .privacy-block {
@@ -312,6 +303,7 @@ img, svg { max-width: 100%; display: block; }
 .notfound { text-align: center; padding: clamp(80px, 18vh, 160px) 0; }
 .notfound h1 { font-size: clamp(56px, 12vw, 120px); margin: 0; letter-spacing: -0.05em; color: var(--citrus); }
 .notfound p { color: var(--muted); margin: 8px 0 24px; }
+.notfound-actions { justify-content: center; }
 
 @media (max-width: 760px) {
   .nav { padding: 12px 16px; }

@@ -50,7 +50,6 @@
             <p class="compat-line"><strong>{{hero.compat}}</strong></p>
           </div>
           <div class="hero-visual">
-            <span class="placeholder-tag">{{hero.visualPlaceholderTag}}</span>
             <img src="{{heroVisualSrc}}" alt="{{hero.visualAlt}}" width="1200" height="750" />
           </div>
         </div>
@@ -93,11 +92,11 @@
                   <div class="status"><span class="status-dot"></span>{{simulation.status}}</div>
                 </header>
                 <nav class="ribbon" aria-label="{{simulation.categoriesLabel}}">
-                  <button class="ribbon-item active" data-category="recent" data-ribbon-item type="button">{{panel.categories.recent.label}}</button>
-                  <button class="ribbon-item" data-category="prompt" data-ribbon-item type="button">{{panel.categories.prompt.label}}</button>
-                  <button class="ribbon-item" data-category="pinned" data-ribbon-item type="button">{{panel.categories.pinned.label}}</button>
-                  <button class="ribbon-item" data-category="image" data-ribbon-item type="button">{{panel.categories.image.label}}</button>
-                  <button class="ribbon-item" data-category="file" data-ribbon-item type="button">{{panel.categories.file.label}}</button>
+                  <button class="ribbon-item active" data-category="recent" data-ribbon-item draggable="true" type="button">{{panel.categories.recent.label}}</button>
+                  <button class="ribbon-item" data-category="prompt" data-ribbon-item draggable="true" type="button">{{panel.categories.prompt.label}}</button>
+                  <button class="ribbon-item" data-category="pinned" data-ribbon-item draggable="true" type="button">{{panel.categories.pinned.label}}</button>
+                  <button class="ribbon-item" data-category="image" data-ribbon-item draggable="true" type="button">{{panel.categories.image.label}}</button>
+                  <button class="ribbon-item" data-category="file" data-ribbon-item draggable="true" type="button">{{panel.categories.file.label}}</button>
                   <span class="ribbon-hint">{{simulation.ribbonHint}}</span>
                 </nav>
                 <div class="deck-intro">
@@ -131,7 +130,7 @@
 
             <div class="no-js-fallback">
               <img src="{{assetsPath}}img/panel-fallback-{{lang}}.svg" alt="{{simulation.fallbackAlt}}" width="1200" height="750" />
-              <p style="text-align:center;color:var(--muted);margin-top:12px">{{simulation.fallbackCaption}}</p>
+              <p class="fallback-caption">{{simulation.fallbackCaption}}</p>
             </div>
           </div>
         </div>
@@ -161,7 +160,7 @@
             </article>
             {{/each}}
           </div>
-          <p style="margin-top:20px"><a href="{{install.helpHref}}">{{install.helpLink}} →</a></p>
+          <p class="install-help"><a href="{{install.helpHref}}">{{install.helpLink}} →</a></p>
         </div>
       </section>
 

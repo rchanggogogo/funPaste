@@ -30,8 +30,7 @@
     "ctaPrimary": "下载 Mac 版",
     "ctaSecondary": "看看怎么用",
     "compat": "macOS 14+ · Apple 芯片与 Intel · 测试版，未经公证",
-    "visualAlt": "funPaste 快捷粘贴面板预览",
-    "visualPlaceholderTag": "替换为真实 App 截图"
+    "visualAlt": "funPaste 快捷粘贴面板预览"
   },
   "pillars": {
     "heading": "为什么是 funPaste",
@@ -178,8 +177,16 @@
       "selectHint": "回车选择",
       "clickHint": "点击选择",
       "selectedToast": "已选择「{title}」（模拟）",
+      "plainSelectedToast": "已按纯文本选择「{title}」（模拟）",
       "promptCopiedToast": "Prompt 已复制（模拟）",
       "promptGeneratedToast": "Prompt 已生成（模拟）",
+      "promptCopyFailedToast": "浏览器阻止了复制操作",
+      "featurePrefix": "功能描述",
+      "constraintPrefix": "技术约束",
+      "generatedTitle": "已补全 Prompt",
+      "generatedType": "文本",
+      "generatedSource": "Prompt 模拟",
+      "generatedTime": "刚刚",
       "emptyTitle": "没有找到相关内容",
       "emptyBody": "换个关键词，或回到全部项目继续浏览。"
     }
