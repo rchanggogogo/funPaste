@@ -106,7 +106,7 @@ funPaste can access the content you copy, so its privacy boundaries should be ex
 - Sensitive-content filtering is heuristic and cannot identify every password, token, or piece of personal information.
 - Accessibility permission is used only to simulate `Command + V`; without it, you can still copy and paste manually.
 
-See [PRIVACY.md](PRIVACY.md) for the full disclosure.
+See [PRIVACY.en.md](PRIVACY.en.md) for the full disclosure.
 
 ## Contributing
 

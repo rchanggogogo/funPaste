@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" role="img" aria-label="funPaste 面板预览">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#151a2d"/>
+      <stop offset="0.72" stop-color="#0b0e19"/>
+    </linearGradient>
+    <radialGradient id="amb1" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#9b5d8f" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#9b5d8f" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="amb2" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#437d90" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#437d90" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#212944" stop-opacity="0.93"/>
+      <stop offset="1" stop-color="#121728" stop-opacity="0.86"/>
+    </linearGradient>
+    <linearGradient id="citrus" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffcb7b"/>
+      <stop offset="1" stop-color="#ff9f5b"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#394469" stop-opacity="0.88"/>
+      <stop offset="1" stop-color="#272f49" stop-opacity="0.84"/>
+    </linearGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="40"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="750" fill="url(#bg)"/>
+  <circle cx="1080" cy="660" r="260" fill="url(#amb1)" filter="url(#blur)"/>
+  <circle cx="120" cy="180" r="170" fill="url(#amb2)" filter="url(#blur)"/>
+
+  <rect x="60" y="70" width="1080" height="620" rx="30" fill="url(#panel)" stroke="#ffffff" stroke-opacity="0.13" stroke-width="1"/>
+
+  <rect x="84" y="94" width="26" height="26" rx="8" fill="url(#citrus)"/>
+  <text x="120" y="113" font-family="-apple-system,'PingFang SC',sans-serif" font-size="16" font-weight="700" fill="#f5f7ff">funPaste</text>
+  <circle cx="1030" cy="107" r="4" fill="#88e2c1"/>
+  <text x="1042" y="111" font-family="-apple-system,'PingFang SC',sans-serif" font-size="12" fill="#a9b2ca">本地私密保存</text>
+
+  <rect x="84" y="146" width="1032" height="40" rx="14" fill="#080c18" fill-opacity="0.35" stroke="#ffffff" stroke-opacity="0.07"/>
+  <rect x="92" y="152" width="104" height="28" rx="9" fill="url(#citrus)"/>
+  <text x="144" y="171" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" font-weight="700" fill="#2a1920" text-anchor="middle">最近复制</text>
+  <text x="232" y="171" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" fill="#a9b2ca">Prompt</text>
+  <text x="312" y="171" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" fill="#a9b2ca">收藏</text>
+  <text x="372" y="171" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" fill="#a9b2ca">图片</text>
+  <text x="432" y="171" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" fill="#a9b2ca">文件</text>
+
+  <text x="84" y="232" font-family="-apple-system,'PingFang SC',sans-serif" font-size="11" font-weight="700" fill="#b9a6ff" letter-spacing="1.5">最近复制</text>
+  <text x="84" y="268" font-family="-apple-system,'PingFang SC',sans-serif" font-size="30" font-weight="800" fill="#f5f7ff">刚复制，也最应该先看到</text>
+  <rect x="990" y="244" width="98" height="26" rx="13" fill="#b9a6ff" fill-opacity="0.13"/>
+  <text x="1039" y="261" font-family="-apple-system,'PingFang SC',sans-serif" font-size="12" fill="#d8ceff" text-anchor="middle">8 个项目</text>
+
+  <rect x="108" y="300" width="240" height="200" rx="19" fill="url(#card)" stroke="#ffffff" stroke-opacity="0.11"/>
+  <rect x="128" y="322" width="26" height="26" rx="8" fill="#ffffff" fill-opacity="0.1"/>
+  <text x="141" y="340" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" fill="#f5f7ff" text-anchor="middle">T</text>
+  <text x="166" y="340" font-family="-apple-system,'PingFang SC',sans-serif" font-size="11" fill="#c5cde5">文本 · 刚刚</text>
+  <text x="128" y="384" font-family="-apple-system,'PingFang SC',sans-serif" font-size="16" font-weight="700" fill="#f5f7ff">产品体验优先</text>
+  <text x="128" y="410" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" fill="#c9d0e6">我只负责把控需求；技术</text>
+  <text x="128" y="428" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" fill="#c9d0e6">方案和实现细节由你决定。</text>
+  <text x="128" y="446" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" fill="#c9d0e6">首要原则是保证用户体验。</text>
+
+  <rect x="372" y="292" width="240" height="216" rx="19" fill="url(#card)" stroke="#ff9f5b" stroke-width="2"/>
+  <rect x="372" y="292" width="240" height="216" rx="19" fill="none" stroke="#ff9f5b" stroke-opacity="0.17" stroke-width="6"/>
+  <rect x="392" y="314" width="26" height="26" rx="8" fill="#ffffff" fill-opacity="0.1"/>
+  <text x="405" y="332" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" fill="#f5f7ff" text-anchor="middle">⌘</text>
+  <text x="430" y="332" font-family="-apple-system,'PingFang SC',sans-serif" font-size="11" fill="#c5cde5">代码 · 2 分钟前</text>
+  <text x="392" y="376" font-family="-apple-system,'PingFang SC',sans-serif" font-size="16" font-weight="700" fill="#f5f7ff">SwiftUI 焦点状态</text>
+  <text x="392" y="404" font-family="ui-monospace,Menlo,monospace" font-size="12" fill="#b9eccf">@State private var</text>
+  <text x="392" y="422" font-family="ui-monospace,Menlo,monospace" font-size="12" fill="#b9eccf">selectedID: Clip.ID?</text>
+  <text x="392" y="486" font-family="-apple-system,'PingFang SC',sans-serif" font-size="11" fill="#aeb9d4">Xcode</text>
+  <text x="592" y="486" font-family="-apple-system,'PingFang SC',sans-serif" font-size="11" fill="#aeb9d4" text-anchor="end">回车选择</text>
+
+  <rect x="636" y="300" width="240" height="200" rx="19" fill="url(#card)" stroke="#ffffff" stroke-opacity="0.11"/>
+  <rect x="656" y="322" width="26" height="26" rx="8" fill="#ffffff" fill-opacity="0.1"/>
+  <text x="669" y="340" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" fill="#f5f7ff" text-anchor="middle">↗</text>
+  <text x="694" y="340" font-family="-apple-system,'PingFang SC',sans-serif" font-size="11" fill="#c5cde5">链接 · 5 分钟前</text>
+  <text x="656" y="384" font-family="-apple-system,'PingFang SC',sans-serif" font-size="16" font-weight="700" fill="#f5f7ff">Apple HIG</text>
+  <text x="656" y="410" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" fill="#c9d0e6">设计应该清晰、可预测，</text>
+  <text x="656" y="428" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" fill="#c9d0e6">并尊重用户已掌握的系统</text>
+  <text x="656" y="446" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" fill="#c9d0e6">习惯。</text>
+
+  <line x1="84" y1="560" x2="1116" y2="560" stroke="#ffffff" stroke-opacity="0.1"/>
+  <rect x="84" y="576" width="300" height="36" rx="11" fill="#090d19" fill-opacity="0.38" stroke="#ffffff" stroke-opacity="0.11"/>
+  <text x="100" y="599" font-family="-apple-system,'PingFang SC',sans-serif" font-size="13" fill="#98a3bf">⌕  直接输入即可搜索</text>
+  <text x="1116" y="599" font-family="-apple-system,'PingFang SC',sans-serif" font-size="11" fill="#9fa9c3" text-anchor="end">↑↓ 选择 · ↵ 选择 · ⇧↵ 纯文本</text>
+</svg>

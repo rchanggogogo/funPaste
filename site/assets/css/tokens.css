@@ -1,0 +1,55 @@
+/* funPaste marketing site — design tokens (single source of truth).
+   Values mirror preview/styles.css so the site and the app-panel prototype
+   share one visual language. The build step copies this file verbatim into
+   site-dist/assets/css/tokens.css. Do not duplicate these tokens elsewhere. */
+
+:root {
+  /* Surfaces */
+  --ink: #121728;
+  --ink-soft: #1a2137;
+  --panel: rgba(18, 23, 40, 0.86);
+  --panel-edge: rgba(255, 255, 255, 0.13);
+  --card: rgba(39, 47, 73, 0.84);
+  --card-solid: #272f49;
+
+  /* Text */
+  --text: #f5f7ff;
+  --muted: #a9b2ca;
+  --muted-soft: #8992ac;
+
+  /* Accents */
+  --citrus: #ff9f5b;
+  --citrus-deep: #f1734f;
+  --citrus-soft: #ffcb7b;
+  --lilac: #b9a6ff;
+  --mint: #88e2c1;
+
+  /* Functional */
+  --bg: radial-gradient(circle at 15% 20%, #414875 0, transparent 30%),
+        linear-gradient(145deg, #151a2d 0%, #0b0e19 72%);
+  --ring: rgba(255, 159, 91, 0.45);
+  --focus: 0 0 0 3px var(--ring);
+
+  /* Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
+               "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Radii */
+  --r-sm: 9px;
+  --r-md: 14px;
+  --r-lg: 19px;
+  --r-xl: 30px;
+  --r-pill: 999px;
+
+  /* Layout */
+  --maxw: 1180px;
+  --gutter: clamp(16px, 4vw, 48px);
+
+  /* Motion */
+  --ease: 0.22s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --ease: 0.01ms; }
+}

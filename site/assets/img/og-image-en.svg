@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-label="funPaste">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#151a2d"/>
+      <stop offset="1" stop-color="#0b0e19"/>
+    </linearGradient>
+    <radialGradient id="amb1" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#9b5d8f" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#9b5d8f" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="amb2" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#437d90" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#437d90" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="citrus" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffcb7b"/>
+      <stop offset="1" stop-color="#ff9f5b"/>
+    </linearGradient>
+    <filter id="blur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="50"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1050" cy="540" r="240" fill="url(#amb1)" filter="url(#blur)"/>
+  <circle cx="140" cy="120" r="170" fill="url(#amb2)" filter="url(#blur)"/>
+
+  <rect x="90" y="120" width="56" height="56" rx="14" fill="url(#citrus)"/>
+  <text x="118" y="161" font-family="-apple-system,Segoe UI,sans-serif" font-size="38" font-weight="800" fill="#271713" text-anchor="middle">f</text>
+  <text x="162" y="158" font-family="-apple-system,Segoe UI,sans-serif" font-size="36" font-weight="700" fill="#f5f7ff">funPaste</text>
+
+  <text x="90" y="290" font-family="-apple-system,Segoe UI,sans-serif" font-size="64" font-weight="800" fill="#f5f7ff" letter-spacing="-2">Copying is only</text>
+  <text x="90" y="366" font-family="-apple-system,Segoe UI,sans-serif" font-size="64" font-weight="800" fill="#ff9f5b" letter-spacing="-2">the beginning.</text>
+
+  <text x="90" y="430" font-family="-apple-system,Segoe UI,sans-serif" font-size="22" fill="#a9b2ca">Clipboard history, prompts, and favorites — one shortcut away.</text>
+
+  <rect x="90" y="476" width="150" height="42" rx="21" fill="#ffffff" fill-opacity="0.06" stroke="#ffffff" stroke-opacity="0.16"/>
+  <text x="165" y="503" font-family="-apple-system,Segoe UI,sans-serif" font-size="18" font-weight="700" fill="#f5f7ff" text-anchor="middle">⇧ ⌘ V</text>
+  <text x="260" y="503" font-family="-apple-system,Segoe UI,sans-serif" font-size="16" fill="#a9b2ca">macOS 14+ · Apple silicon &amp; Intel · not notarized</text>
+</svg>
