@@ -61,18 +61,18 @@ struct FunPastePreview: App {
 
     var body: some Scene {
         MenuBarExtra("funPaste", systemImage: "square.on.square.intersection.dashed") {
-            Button("显示 funPaste") {
+            Button(FunPasteLocalization.string("menu.show")) {
                 appDelegate.togglePanel()
             }
-            Button(appDelegate.store.isPaused ? "恢复记录剪贴板" : "暂停记录剪贴板") {
+            Button(FunPasteLocalization.string(appDelegate.store.isPaused ? "menu.resume" : "menu.pause")) {
                 appDelegate.store.togglePause()
             }
             Divider()
-            Button("清空剪贴历史") {
+            Button(FunPasteLocalization.string("menu.clear")) {
                 appDelegate.store.clearHistory()
             }
             Divider()
-            Button("退出 funPaste") {
+            Button(FunPasteLocalization.string("menu.quit")) {
                 NSApplication.shared.terminate(nil)
             }
         }

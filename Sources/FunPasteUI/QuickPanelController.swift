@@ -147,7 +147,7 @@ public final class QuickPanelController {
         panel?.orderOut(nil)
         guard let target = pasteTargetApplication, !target.isTerminated else {
             panelLogger.error("没有可恢复的粘贴目标")
-            store.showFeedback("已复制，请手动粘贴")
+            store.showFeedback(FunPasteLocalization.string("feedback.copiedManualPaste"))
             return
         }
 
@@ -188,7 +188,7 @@ public final class QuickPanelController {
 
         guard attemptsRemaining > 0 else {
             panelLogger.error("粘贴目标未在限定时间内恢复前台")
-            store.showFeedback("已复制，请手动粘贴")
+            store.showFeedback(FunPasteLocalization.string("feedback.copiedManualPaste"))
             return
         }
 

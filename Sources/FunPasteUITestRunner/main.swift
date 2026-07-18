@@ -9,6 +9,38 @@ func expect(_ condition: @autoclosure () -> Bool, _ message: String) {
 }
 
 expect(
+    FunPasteLanguage.preferred(from: ["zh-Hans-CN"]) == .simplifiedChinese &&
+        FunPasteLanguage.preferred(from: ["en-US"]) == .english &&
+        FunPasteLanguage.preferred(from: ["fr-FR"]) == .english &&
+        FunPasteLocalization.hasCompleteTranslations &&
+        FunPasteLocalization.string("menu.show", language: .english) == "Show funPaste" &&
+        FunPasteLocalization.string("menu.show", language: .simplifiedChinese) == "显示 funPaste" &&
+        FunPasteLocalization.string("prompt.plainLanguage.content", language: .english).contains("\n\n") &&
+        FunPasteLocalization.string("prompt.plainLanguage.content", language: .simplifiedChinese).contains("\n\n"),
+    "本地化必须按系统首选语言选择简体中文，并为其他语言回退英文"
+)
+
+let englishPrompt = Clip(
+    id: "english-prompt-test",
+    category: .prompt,
+    title: "English prompt",
+    content: FunPasteLocalization.string("prompt.development.content", language: .english),
+    source: "Test"
+)
+var englishPromptState = PromptComposerState(prompt: englishPrompt)
+englishPromptState.featureDescription = "English goal"
+englishPromptState.technicalConstraint = "Keep the public API"
+expect(
+    englishPromptState.requiresFeatureDescription &&
+        englishPromptState.requiresTechnicalConstraint &&
+        englishPromptState.canSubmit &&
+        !englishPromptState.resolvedContent.contains("{{"),
+    "英文 Prompt 必须识别并替换英文变量"
+)
+
+print("通过：系统语言选择与双语 Prompt")
+
+expect(
     Array(ClipCategory.defaultOrder.prefix(2)) == [.recent, .prompt],
     "默认分类必须先展示最近复制，再展示 Prompt"
 )
@@ -16,7 +48,9 @@ expect(
 print("通过：默认分类顺序")
 
 expect(
-    Clip.demo.first { $0.category == .prompt }?.content.contains("{{功能描述}}") == true,
+    Clip.demo.first { $0.category == .prompt }.map {
+        PromptComposerState(prompt: $0).requiresFeatureDescription
+    } == true,
     "内置开发 Prompt 必须保留功能描述变量"
 )
 
@@ -170,7 +204,7 @@ var fileHistory = ClipHistory(maximumCount: 5)
 fileHistory.recordFiles([firstFileURL, secondFileURL, firstFileURL])
 expect(
     fileHistory.clips.first?.category == .file &&
-        fileHistory.clips.first?.title == "2 个文件" &&
+        fileHistory.clips.first?.title == FunPasteLocalization.format("history.files.count", 2) &&
         fileHistory.clips.first?.fileURLs == [firstFileURL.standardizedFileURL, secondFileURL.standardizedFileURL],
     "复制多个文件时必须保存真实文件 URL、维持顺序并去除重复路径"
 )
@@ -233,7 +267,7 @@ try! FileManager.default.removeItem(at: secondFileURL)
 expect(
     !fileCopyStore.copy(persistedFileClip, to: filePasteboard) &&
         fileCopyStore.history.clips.allSatisfy { $0.id != persistedFileClip.id } &&
-        fileCopyStore.feedbackMessage == "文件已被移动或删除，已从历史中移除",
+        fileCopyStore.feedbackMessage == FunPasteLocalization.string("feedback.fileMissing"),
     "所有源文件失效后必须移除历史卡片、阻止空粘贴并给出可见反馈"
 )
 fileCopyDefaults.removePersistentDomain(forName: fileCopySuiteName)
@@ -449,6 +483,8 @@ expect(
                 !$0.content
                     .replacingOccurrences(of: "{{功能描述}}", with: "测试目标")
                     .replacingOccurrences(of: "{{技术约束}}", with: "测试约束")
+                    .replacingOccurrences(of: "{{feature description}}", with: "test goal")
+                    .replacingOccurrences(of: "{{technical constraints}}", with: "test constraints")
                     .contains("{{")
         },
     "首次内容库必须包含可补全变量的 AI 协作与工程开发 Prompt"
@@ -465,10 +501,12 @@ let seededOpenAIPrompts = library.items.filter { openAIPromptIDs.contains($0.id)
 expect(
     Set(seededOpenAIPrompts.map(\.id)) == openAIPromptIDs &&
         seededOpenAIPrompts.allSatisfy {
-            $0.source == "OpenAI GPT-5.6 指南" &&
+            $0.source == FunPasteLocalization.string("prompt.source.openAI") &&
                 !$0.content
                     .replacingOccurrences(of: "{{功能描述}}", with: "测试目标")
                     .replacingOccurrences(of: "{{技术约束}}", with: "测试约束")
+                    .replacingOccurrences(of: "{{feature description}}", with: "test goal")
+                    .replacingOccurrences(of: "{{technical constraints}}", with: "test constraints")
                     .contains("{{")
         },
     "首次内容库必须包含来自 OpenAI GPT-5.6 指南的可补全 Prompt"
@@ -507,7 +545,9 @@ expect(
     composerState.canSubmit &&
         composerState.resolvedContent.contains("第一行目标\n第二行包含更多细节") &&
         composerState.resolvedContent.contains("保持现有接口\n兼容 macOS 14") &&
-        composerState.resolvedContent.hasSuffix("补充上下文：\n错误日志第一行\n错误日志第二行") &&
+        composerState.resolvedContent.hasSuffix(
+            "\(FunPasteLocalization.string("promptComposer.additionalSection"))\n错误日志第一行\n错误日志第二行"
+        ) &&
         !composerState.preparedClip.content.contains("{{"),
     "独立 Prompt 编辑器必须保留多行输入、附加上下文并生成完整内容"
 )
@@ -743,7 +783,7 @@ formattingMigrationDefaults.set(
 formattingMigrationDefaults.set(3, forKey: "funPaste.librarySeedVersion")
 let formattingMigratedStore = ClipboardStore(defaults: formattingMigrationDefaults)
 expect(
-    formattingMigratedStore.library.items.first?.content.contains("\n\n目标：") == true &&
+    formattingMigratedStore.library.items.first?.content.contains("\n\n") == true &&
         formattingMigratedStore.library.items.count == 1,
     "版本 3 内容库升级时必须为已有内置 Prompt 增加段落，且不得补回其他条目"
 )

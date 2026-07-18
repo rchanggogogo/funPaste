@@ -109,17 +109,17 @@ public struct RibbonDeckView: View {
             return .handled
         }
         .confirmationDialog(
-            "删除后无法恢复",
+            FunPasteLocalization.string("delete.warning"),
             isPresented: Binding(
                 get: { itemPendingDeletion != nil },
                 set: { if !$0 { itemPendingDeletion = nil } }
             ),
             titleVisibility: .visible
         ) {
-            Button("删除", role: .destructive) { deletePendingItem() }
-            Button("取消", role: .cancel) { itemPendingDeletion = nil }
+            Button(FunPasteLocalization.string("common.delete"), role: .destructive) { deletePendingItem() }
+            Button(FunPasteLocalization.string("common.cancel"), role: .cancel) { itemPendingDeletion = nil }
         } message: {
-            Text("确定删除“\(itemPendingDeletion?.title ?? "")”吗？")
+            Text(FunPasteLocalization.format("delete.confirmation", itemPendingDeletion?.title ?? ""))
         }
         .sheet(item: $promptForSheet) { prompt in
             PromptComposerView(
@@ -146,15 +146,18 @@ public struct RibbonDeckView: View {
                 .font(.title3.bold())
             Spacer()
             Menu {
-                Section("剪贴历史上限") {
+                Section(FunPasteLocalization.string("settings.historyLimit")) {
                     ForEach(ClipboardStore.availableHistoryMaximumCounts, id: \.self) { maximumCount in
                         Button {
                             store.setHistoryMaximumCount(maximumCount)
                         } label: {
                             if store.history.maximumCount == maximumCount {
-                                Label("\(maximumCount) 条", systemImage: "checkmark")
+                                Label(
+                                    FunPasteLocalization.format("settings.historyLimit.count", maximumCount),
+                                    systemImage: "checkmark"
+                                )
                             } else {
-                                Text("\(maximumCount) 条")
+                                Text(FunPasteLocalization.format("settings.historyLimit.count", maximumCount))
                             }
                         }
                     }
@@ -167,9 +170,12 @@ public struct RibbonDeckView: View {
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
+            .frame(width: 28, height: 28)
+            .contentShape(Circle())
+            .clipShape(Circle())
             .background(.white.opacity(0.1), in: Circle())
             .pointingCursor()
-            .accessibilityLabel("funPaste 设置")
+            .accessibilityLabel(FunPasteLocalization.string("settings.title"))
             if compact {
                 Button(action: dismissPanel ?? {}) {
                     Image(systemName: "xmark")
@@ -179,7 +185,7 @@ public struct RibbonDeckView: View {
                 .buttonStyle(.plain)
                 .background(.white.opacity(0.1), in: Circle())
                 .pointingCursor()
-                .accessibilityLabel("关闭 funPaste")
+                .accessibilityLabel(FunPasteLocalization.string("close.funPaste"))
             }
         }
     }
@@ -201,7 +207,7 @@ public struct RibbonDeckView: View {
                     }
                     .buttonStyle(.plain)
                     .pointingCursor()
-                    .accessibilityLabel("切换到\(item.label)")
+                    .accessibilityLabel(FunPasteLocalization.format("category.switch", item.label))
                 }
             }
             .padding(4)
@@ -236,7 +242,9 @@ public struct RibbonDeckView: View {
                 .background(FunPasteTheme.accent, in: Circle())
                 .foregroundStyle(FunPasteTheme.ink)
                 .pointingCursor()
-                .accessibilityLabel(category == .prompt ? "新建 Prompt" : "新建收藏")
+                .accessibilityLabel(
+                    FunPasteLocalization.string(category == .prompt ? "prompt.new" : "favorite.new")
+                )
             }
             Text("\(visibleClips.count)")
                 .font(.caption.weight(.bold))
@@ -250,7 +258,11 @@ public struct RibbonDeckView: View {
             ScrollView {
                 LazyVStack(spacing: 9) {
                     if visibleClips.isEmpty {
-                        ContentUnavailableView("没有找到相关内容", systemImage: "magnifyingglass", description: Text("换个关键词，或切换分类继续浏览。"))
+                        ContentUnavailableView(
+                            FunPasteLocalization.string("empty.title"),
+                            systemImage: "magnifyingglass",
+                            description: Text(FunPasteLocalization.string("empty.description"))
+                        )
                             .frame(maxWidth: .infinity, minHeight: 180)
                     } else {
                         ForEach(visibleClips) { clip in
@@ -304,7 +316,10 @@ public struct RibbonDeckView: View {
                     }
                 }
             } label: {
-                Label(promptFilter.collection?.label ?? "分类", systemImage: "folder")
+                Label(
+                    promptFilter.collection?.label ?? FunPasteLocalization.string("common.category"),
+                    systemImage: "folder"
+                )
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(promptFilter.collection == nil ? Color.secondary : FunPasteTheme.ink)
                     .padding(.horizontal, 8)
@@ -339,7 +354,7 @@ public struct RibbonDeckView: View {
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
             .pointingCursor()
-            .accessibilityLabel("Prompt 排序")
+            .accessibilityLabel(FunPasteLocalization.string("prompt.sort"))
         }
         .padding(4)
         .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -374,10 +389,10 @@ public struct RibbonDeckView: View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(libraryEditorState.editingItem == nil ? (libraryEditorState.category == .prompt ? "新建 Prompt" : "新建收藏") : "编辑\(libraryEditorState.category == .prompt ? " Prompt" : "收藏")")
+                    Text(libraryEditorTitle)
                         .font(.headline)
                     if libraryEditorState.category == .prompt {
-                        Text("可使用 {{功能描述}}、{{技术约束}} 作为变量")
+                        Text(FunPasteLocalization.string("editor.variablesHint"))
                             .font(.caption2)
                             .foregroundStyle(.secondary)
                     }
@@ -386,10 +401,14 @@ public struct RibbonDeckView: View {
                 Button { closeLibraryEditor() } label: { Image(systemName: "xmark") }
                     .buttonStyle(.plain)
                     .pointingCursor()
-                    .accessibilityLabel("关闭内容编辑")
+                    .accessibilityLabel(FunPasteLocalization.string("editor.close"))
             }
             TextField(
-                libraryEditorState.category == .prompt ? "标题，例如：实现一个新功能" : "标题，例如：常用收件地址",
+                FunPasteLocalization.string(
+                    libraryEditorState.category == .prompt
+                        ? "editor.prompt.titlePlaceholder"
+                        : "editor.favorite.titlePlaceholder"
+                ),
                 text: $libraryEditorState.title
             )
             .textFieldStyle(.roundedBorder)
@@ -400,30 +419,40 @@ public struct RibbonDeckView: View {
                 .background(.black.opacity(0.18), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: 9, style: .continuous).stroke(.white.opacity(0.12)))
             if libraryEditorState.content.isEmpty {
-                Text(libraryEditorState.category == .prompt ? "示例：请帮我完成……" : "填写需要长期保留的内容")
+                Text(
+                    FunPasteLocalization.string(
+                        libraryEditorState.category == .prompt
+                            ? "editor.prompt.contentPlaceholder"
+                            : "editor.favorite.contentPlaceholder"
+                    )
+                )
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
             if libraryEditorState.category == .prompt {
                 HStack {
-                    Picker("主分类", selection: $libraryEditorState.promptCollection) {
+                    Picker(FunPasteLocalization.string("editor.primaryCollection"), selection: $libraryEditorState.promptCollection) {
                         ForEach(PromptCollection.allCases, id: \.self) { collection in
                             Text(collection.label).tag(collection)
                         }
                     }
                     .pickerStyle(.menu)
-                    TextField("标签，用逗号分隔", text: $libraryEditorState.tagsText)
+                    TextField(FunPasteLocalization.string("editor.tagsPlaceholder"), text: $libraryEditorState.tagsText)
                         .textFieldStyle(.roundedBorder)
                 }
-                TextField("来源链接（可选）", text: $libraryEditorState.sourceURL)
+                TextField(FunPasteLocalization.string("editor.sourceURLPlaceholder"), text: $libraryEditorState.sourceURL)
                     .textFieldStyle(.roundedBorder)
             }
             HStack {
-                Button("取消") { closeLibraryEditor() }
+                Button(FunPasteLocalization.string("common.cancel")) { closeLibraryEditor() }
                     .buttonStyle(.bordered)
                     .pointingCursor()
                 Spacer()
-                Button(libraryEditorState.editingItem == nil ? "创建" : "保存") { saveLibraryEditor() }
+                Button(
+                    FunPasteLocalization.string(
+                        libraryEditorState.editingItem == nil ? "common.create" : "common.save"
+                    )
+                ) { saveLibraryEditor() }
                     .buttonStyle(.borderedProminent)
                     .tint(FunPasteTheme.accent)
                     .pointingCursor()
@@ -445,7 +474,20 @@ public struct RibbonDeckView: View {
     }
 
     private var searchPlaceholder: String {
-        category == .prompt ? "搜索 Prompt、标签或来源" : "搜索(category.label)"
+        category == .prompt
+            ? FunPasteLocalization.string("search.prompt")
+            : FunPasteLocalization.format("search.category", category.label)
+    }
+
+    private var libraryEditorTitle: String {
+        if libraryEditorState.editingItem == nil {
+            return FunPasteLocalization.string(
+                libraryEditorState.category == .prompt ? "editor.prompt.new" : "editor.favorite.new"
+            )
+        }
+        return FunPasteLocalization.string(
+            libraryEditorState.category == .prompt ? "editor.prompt.edit" : "editor.favorite.edit"
+        )
     }
 
     private func select(_ clip: Clip) {
@@ -460,29 +502,34 @@ public struct RibbonDeckView: View {
     private func togglePin(_ clip: Clip) {
         if store.isPinned(clip) {
             store.unpin(clip)
-            store.showFeedback("已取消收藏「\(clip.title)」")
+            store.showFeedback(FunPasteLocalization.format("feedback.unpinned", clip.title))
         } else {
             let item = store.pin(clip)
-            store.showFeedback("已收藏「\(item.title)」")
+            store.showFeedback(FunPasteLocalization.format("feedback.pinned", item.title))
         }
     }
 
     private func togglePromptFavorite(_ clip: Clip) {
         store.togglePromptFavorite(id: clip.id)
         let isNowFavorite = !(clip.promptMetadata?.isFavorite ?? false)
-        store.showFeedback(isNowFavorite ? "已收藏 Prompt「\(clip.title)」" : "已取消收藏 Prompt「\(clip.title)」")
+        store.showFeedback(
+            FunPasteLocalization.format(
+                isNowFavorite ? "feedback.promptFavorited" : "feedback.promptUnfavorited",
+                clip.title
+            )
+        )
     }
 
     private func archivePrompt(_ clip: Clip) {
         store.setPromptArchived(id: clip.id, isArchived: true)
         selectedID = visibleClips.first?.id
-        store.showFeedback("已归档「\(clip.title)」")
+        store.showFeedback(FunPasteLocalization.format("feedback.archived", clip.title))
     }
 
     private func restorePrompt(_ clip: Clip) {
         store.setPromptArchived(id: clip.id, isArchived: false)
         selectedID = visibleClips.first?.id
-        store.showFeedback("已恢复「\(clip.title)」")
+        store.showFeedback(FunPasteLocalization.format("feedback.restored", clip.title))
     }
 
     private func startCreatingLibraryItem(category: ClipCategory) {
@@ -501,7 +548,7 @@ public struct RibbonDeckView: View {
         let title = libraryEditorState.title.trimmingCharacters(in: .whitespacesAndNewlines)
         let content = libraryEditorState.content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !title.isEmpty, !content.isEmpty else {
-            store.showFeedback("标题和内容都不能为空")
+            store.showFeedback(FunPasteLocalization.string("feedback.emptyFields"))
             return
         }
 
@@ -512,7 +559,7 @@ public struct RibbonDeckView: View {
            ) {
             selectedID = duplicate.id
             closeLibraryEditor()
-            store.showFeedback("已有相同内容：「\(duplicate.title)」")
+            store.showFeedback(FunPasteLocalization.format("feedback.duplicate", duplicate.title))
             return
         }
 
@@ -540,7 +587,7 @@ public struct RibbonDeckView: View {
         }
         selectedID = savedItem.id
         closeLibraryEditor()
-        store.showFeedback("已保存「\(savedItem.title)」")
+        store.showFeedback(FunPasteLocalization.format("feedback.saved", savedItem.title))
     }
 
     private func editedPromptMetadata(from existing: PromptMetadata?) -> PromptMetadata {
@@ -562,7 +609,7 @@ public struct RibbonDeckView: View {
         store.deleteLibraryItem(id: item.id)
         if selectedID == item.id { selectedID = visibleClips.first?.id }
         itemPendingDeletion = nil
-        store.showFeedback("已删除「\(item.title)」")
+        store.showFeedback(FunPasteLocalization.format("feedback.deleted", item.title))
     }
 
     private func moveSelection(forward: Bool) {
@@ -643,10 +690,10 @@ private enum PromptLibraryFilter: Hashable {
 
     var label: String {
         switch self {
-        case .all: "全部"
-        case .favorites: "收藏"
+        case .all: FunPasteLocalization.string("prompt.filter.all")
+        case .favorites: FunPasteLocalization.string("prompt.filter.favorites")
         case let .collection(collection): collection.label
-        case .archived: "已归档"
+        case .archived: FunPasteLocalization.string("prompt.filter.archived")
         }
     }
 }
@@ -678,7 +725,9 @@ private struct ClipRow: View {
                         }
                         .buttonStyle(.plain)
                         .pointingCursor()
-                        .accessibilityLabel(isPinned ? "已收藏" : "收藏")
+                        .accessibilityLabel(
+                            FunPasteLocalization.string(isPinned ? "favorite.added" : "favorite.add")
+                        )
                     }
                     if clip.category == .prompt {
                         Button(action: onPromptFavorite) {
@@ -687,20 +736,32 @@ private struct ClipRow: View {
                         }
                         .buttonStyle(.plain)
                         .pointingCursor()
-                        .accessibilityLabel(isPromptFavorite ? "取消收藏 Prompt" : "收藏 Prompt")
+                        .accessibilityLabel(
+                            FunPasteLocalization.string(
+                                isPromptFavorite ? "prompt.unfavorite" : "prompt.favorite"
+                            )
+                        )
                     }
                     if clip.category == .prompt || clip.category == .pinned {
                         Menu {
-                            Button("编辑", action: onEdit)
+                            Button(FunPasteLocalization.string("common.edit"), action: onEdit)
                             if clip.category == .prompt {
                                 if clip.promptMetadata?.isArchived == true {
-                                    Button("恢复", action: onRestore)
-                                    Button("永久删除", role: .destructive, action: onDelete)
+                                    Button(FunPasteLocalization.string("common.restore"), action: onRestore)
+                                    Button(
+                                        FunPasteLocalization.string("delete.permanently"),
+                                        role: .destructive,
+                                        action: onDelete
+                                    )
                                 } else {
-                                    Button("归档", action: onArchive)
+                                    Button(FunPasteLocalization.string("common.archive"), action: onArchive)
                                 }
                             } else {
-                                Button("删除", role: .destructive, action: onDelete)
+                                Button(
+                                    FunPasteLocalization.string("common.delete"),
+                                    role: .destructive,
+                                    action: onDelete
+                                )
                             }
                         } label: {
                             Image(systemName: "ellipsis")
@@ -710,7 +771,13 @@ private struct ClipRow: View {
                         .menuStyle(.borderlessButton)
                         .menuIndicator(.hidden)
                         .pointingCursor()
-                        .accessibilityLabel("管理\(clip.category == .prompt ? "Prompt" : "收藏")")
+                        .accessibilityLabel(
+                            FunPasteLocalization.string(
+                                clip.category == .prompt
+                                    ? "content.manage.prompt"
+                                    : "content.manage.favorite"
+                            )
+                        )
                     }
                     Text(clip.category.label).font(.caption2).foregroundStyle(.secondary)
                 }
@@ -757,21 +824,21 @@ private struct ClipRow: View {
 private extension ClipCategory {
     var label: String {
         switch self {
-        case .recent: "最近复制"
-        case .prompt: "Prompt"
-        case .pinned: "收藏"
-        case .image: "图片"
-        case .file: "文件"
+        case .recent: FunPasteLocalization.string("category.recent")
+        case .prompt: FunPasteLocalization.string("category.prompt")
+        case .pinned: FunPasteLocalization.string("category.pinned")
+        case .image: FunPasteLocalization.string("category.image")
+        case .file: FunPasteLocalization.string("category.file")
         }
     }
 
     var headline: String {
         switch self {
-        case .recent: "刚复制，也最应该先看到"
-        case .prompt: "把好问题留在触手可及处"
-        case .pinned: "真正值得反复使用的内容"
-        case .image: "刚复制的图片，也在这里"
-        case .file: "文件引用，不再散落在记忆里"
+        case .recent: FunPasteLocalization.string("category.recent.headline")
+        case .prompt: FunPasteLocalization.string("category.prompt.headline")
+        case .pinned: FunPasteLocalization.string("category.pinned.headline")
+        case .image: FunPasteLocalization.string("category.image.headline")
+        case .file: FunPasteLocalization.string("category.file.headline")
         }
     }
 }

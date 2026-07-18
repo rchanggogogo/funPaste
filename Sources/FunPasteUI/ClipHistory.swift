@@ -15,7 +15,10 @@ public struct ClipHistory: Sendable, Codable {
         ClipHistory(maximumCount: maximumCount, clips: clips)
     }
 
-    public mutating func record(_ content: String, source: String = "剪贴板") {
+    public mutating func record(
+        _ content: String,
+        source: String = FunPasteLocalization.string("history.source.clipboard")
+    ) {
         let normalized = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !normalized.isEmpty, !normalized.isSensitiveClipboardContent else { return }
 
@@ -37,7 +40,11 @@ public struct ClipHistory: Sendable, Codable {
         }
     }
 
-    public mutating func recordImage(_ data: Data, title: String = "剪贴图片", source: String = "剪贴板") {
+    public mutating func recordImage(
+        _ data: Data,
+        title: String = FunPasteLocalization.string("history.image.title"),
+        source: String = FunPasteLocalization.string("history.source.clipboard")
+    ) {
         guard !data.isEmpty else { return }
         clips.removeAll { $0.imageData == data }
         clips.insert(
@@ -45,7 +52,10 @@ public struct ClipHistory: Sendable, Codable {
                 id: UUID().uuidString,
                 category: .image,
                 title: title,
-                content: "图片 · \(ByteCountFormatter.string(fromByteCount: Int64(data.count), countStyle: .file))",
+                content: FunPasteLocalization.format(
+                    "history.image.description",
+                    ByteCountFormatter.string(fromByteCount: Int64(data.count), countStyle: .file)
+                ),
                 source: source,
                 imageData: data
             ),
@@ -69,7 +79,7 @@ public struct ClipHistory: Sendable, Codable {
         clips.removeAll { $0.fileURLs == normalizedURLs }
         let title = normalizedURLs.count == 1
             ? normalizedURLs[0].lastPathComponent
-            : "\(normalizedURLs.count) 个文件"
+            : FunPasteLocalization.format("history.files.count", normalizedURLs.count)
         clips.insert(
             Clip(
                 id: UUID().uuidString,
@@ -101,7 +111,9 @@ public struct ClipHistory: Sendable, Codable {
             return Clip(
                 id: clip.id,
                 category: .file,
-                title: existingURLs.count == 1 ? existingURLs[0].lastPathComponent : "\(existingURLs.count) 个文件",
+                title: existingURLs.count == 1
+                    ? existingURLs[0].lastPathComponent
+                    : FunPasteLocalization.format("history.files.count", existingURLs.count),
                 content: existingURLs.map(\.path).joined(separator: "\n"),
                 source: clip.source,
                 fileURLs: existingURLs
