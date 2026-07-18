@@ -3,3 +3,5 @@
 .build-release-x86_64/
 .DS_Store
 /dist/
+/site-dist/
+/.workbuddy/

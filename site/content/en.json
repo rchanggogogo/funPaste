@@ -1,0 +1,187 @@
+{
+  "lang": "en",
+  "htmlLang": "en",
+  "hreflang": "en",
+  "otherHreflang": "zh-Hans",
+  "canonicalBase": "https://rchanggogogo.github.io/funPaste/",
+  "otherCanonicalBase": "https://rchanggogogo.github.io/funPaste/zh/",
+  "meta": {
+    "landingTitle": "funPaste — Clipboard history, prompts, and favorites one shortcut away",
+    "landingDescription": "A keyboard-first macOS clipboard manager. Keep recent clips, reusable prompts, and favorites in one panel. Press Shift+Command+V. Local-first, no account, no telemetry.",
+    "helpTitle": "Setup guide · funPaste",
+    "helpDescription": "How to install funPaste, handle the first-launch warning, grant Accessibility permission, and make your first paste with Shift+Command+V.",
+    "ogType": "website",
+    "ogImage": "assets/img/og-image.svg"
+  },
+  "nav": {
+    "brand": "funPaste",
+    "download": "Download",
+    "skipToContent": "Skip to content",
+    "langToggleLabel": "中文",
+    "langToggleHrefLanding": "zh/",
+    "langToggleHrefHelp": "../zh/help/"
+  },
+  "hero": {
+    "eyebrow": "macOS clipboard manager",
+    "title": "Copying is only the beginning.",
+    "lede": "Keep clipboard history, reusable prompts, and favorites one shortcut away. Press Shift+Command+V from any app, select with the keyboard, and paste back where you were working.",
+    "shortcut": "⇧⌘V",
+    "shortcutLabel": "Show the panel",
+    "ctaPrimary": "Download for Mac",
+    "ctaSecondary": "See how it works",
+    "compat": "macOS 14+ · Apple silicon & Intel · beta, not notarized",
+    "visualAlt": "funPaste quick-paste panel preview",
+    "visualPlaceholderTag": "Replace with a real app screenshot"
+  },
+  "pillars": {
+    "heading": "Why funPaste",
+    "lede": "Many clipboard managers turn everything you copy into one long list. funPaste keeps recent text, images, files, favorites, and prompts together in one keyboard-first panel.",
+    "items": [
+      { "glyph": "⚡", "title": "Stay in flow", "body": "Press Shift+Command+V from any app, move with the arrow keys, and press Enter to paste back where you were working." },
+      { "glyph": "✦", "title": "Prompts are first-class", "body": "Save reusable prompts and complete {{feature}} and {{constraints}} before pasting." },
+      { "glyph": "◉", "title": "Local-first", "body": "No account, telemetry, ads, or network sync. Your history, prompts, and favorites stay on your Mac." }
+    ]
+  },
+  "simulation": {
+    "eyebrow": "Interactive simulation",
+    "heading": "Try the panel",
+    "lede": "This is a browser simulation of the panel, not the live app. Switch categories, search, and select items with the keyboard. Enter selects an item in the simulation — it does not paste into another application.",
+    "status": "Saved locally",
+    "ribbonHint": "Drag to reorder",
+    "searchPlaceholder": "Type to search",
+    "searchLabel": "Search current category",
+    "categoriesLabel": "Content categories",
+    "closeLabel": "Close variable editor",
+    "keyboardHints": "↑↓ select · ↵ select · ⇧↵ plain · ⌘1–9 quick",
+    "editorEyebrow": "Ready to paste",
+    "editorHeading": "Complete this prompt",
+    "featureLabel": "Feature description",
+    "featurePlaceholder": "e.g. add favorite groups",
+    "constraintLabel": "Technical constraints",
+    "constraintPlaceholder": "e.g. keep using SwiftUI",
+    "copyBtn": "Copy only",
+    "pasteBtn": "Generate",
+    "fallbackAlt": "Static preview of the funPaste panel",
+    "fallbackCaption": "The interactive simulation needs JavaScript. This is a static preview of the panel."
+  },
+  "features": {
+    "heading": "What it does",
+    "lede": "funPaste works more like a deck of content cards than one long clipboard list.",
+    "items": [
+      "Records text, image, and file clipboard history; duplicates move to the top.",
+      "Search recent clips with fast keyboard navigation.",
+      "Create, edit, and delete your own prompts and favorites.",
+      "Favorite recently copied text or images in one click.",
+      "Complete prompt variables before copying or pasting.",
+      "Pause recording or clear all history at any time.",
+      "Runs as a menu bar agent without taking space in the Dock.",
+      "Automatically uses an English or Simplified Chinese interface."
+    ]
+  },
+  "install": {
+    "heading": "Install in a few steps",
+    "lede": "The current beta is ad-hoc signed and not notarized by Apple, so the first launch needs one extra step.",
+    "steps": [
+      { "title": "Download the universal DMG", "body": "One build covers Apple silicon and Intel Macs on macOS 14 or later." },
+      { "title": "Drag funPaste to Applications", "body": "Open the DMG and drag the app into your Applications folder." },
+      { "title": "Control-click and choose Open", "body": "On first launch, Control-click the app and choose Open, then confirm. macOS will warn that the app is not notarized." },
+      { "title": "Allow Accessibility (optional)", "body": "Allow funPaste in System Settings → Privacy & Security → Accessibility. This is used only to simulate Command+V. Without it, copying and manual paste still work." }
+    ],
+    "helpLink": "Read the full setup guide"
+  },
+  "privacy": {
+    "heading": "Privacy is not a footnote",
+    "lede": "funPaste can access what you copy, so its privacy boundaries are explicit.",
+    "points": [
+      "The app makes no network requests and does not write clipboard contents to logs.",
+      "Clipboard history and the content library are persisted through macOS UserDefaults without additional app-level encryption.",
+      "Sensitive-content filtering is heuristic and cannot identify every password, token, or piece of personal information.",
+      "Accessibility permission is used only to simulate Command+V; without it you can still copy and paste manually."
+    ],
+    "link": "Read the full privacy statement",
+    "linkHref": "https://github.com/rchanggogogo/funPaste/blob/main/PRIVACY.md"
+  },
+  "download": {
+    "heading": "Copy with one shortcut",
+    "body": "Download the latest universal DMG. It is ad-hoc signed and not notarized — install using the steps above.",
+    "ctaPrimary": "Download latest DMG",
+    "ctaSecondary": "All releases",
+    "ctaSecondaryHref": "https://github.com/rchanggogogo/funPaste/releases",
+    "compat": "macOS 14+ · Apple silicon & Intel · beta, not notarized",
+    "versionMeta": "Universal DMG · ad-hoc signed"
+  },
+  "footer": {
+    "repo": "GitHub repository",
+    "repoHref": "https://github.com/rchanggogogo/funPaste",
+    "releases": "All releases",
+    "releasesHref": "https://github.com/rchanggogogo/funPaste/releases",
+    "help": "Help",
+    "privacy": "Privacy",
+    "privacyHref": "https://github.com/rchanggogogo/funPaste/blob/main/PRIVACY.md",
+    "license": "MIT License",
+    "langToggleLabel": "中文"
+  },
+  "help": {
+    "eyebrow": "Setup",
+    "title": "Setup guide",
+    "back": "Back to funPaste",
+    "intro": "This guide covers installing funPaste, handling the first-launch warning, granting the Accessibility permission, and making your first paste.",
+    "sections": [
+      {
+        "h2": "Install funPaste",
+        "body": "<ol><li>Download the latest universal DMG from the <a href=\"https://github.com/rchanggogogo/funPaste/releases\">Releases page</a>.</li><li>Open the DMG and drag funPaste into <strong>Applications</strong>.</li><li>The DMG covers Apple silicon and Intel Macs running macOS 14 or later.</li></ol>"
+      },
+      {
+        "h2": "First launch and Gatekeeper",
+        "body": "<p>Because the beta is ad-hoc signed and not notarized by Apple, macOS will warn on first launch:</p><ol><li>In <strong>Applications</strong>, Control-click funPaste and choose <strong>Open</strong>.</li><li>Confirm that you want to open it. The warning appears because the app is not notarized, not because a problem was detected.</li><li>After the first confirmation, funPaste opens normally on later launches.</li></ol>"
+      },
+      {
+        "h2": "Accessibility permission",
+        "body": "<p>funPaste requests the Accessibility permission only to simulate <kbd>Command+V</kbd> and paste the selected item back into the app you were using.</p><div class=\"callout\">If you deny the permission, clipboard recording and copying still work — you just paste manually with <kbd>Command+V</kbd>.</div><ol><li>Open <strong>System Settings → Privacy & Security → Accessibility</strong>.</li><li>Enable funPaste in the list.</li><li>If the panel still cannot paste automatically, quit and reopen funPaste.</li></ol>"
+      },
+      {
+        "h2": "Your first paste",
+        "body": "<ol><li>Copy something in any app.</li><li>Press <kbd>Shift+Command+V</kbd> to open the panel.</li><li>Use <kbd>↑</kbd> / <kbd>↓</kbd> to move the selection.</li><li>Press <kbd>Enter</kbd> to paste the selected item where your cursor was.</li><li>Press <kbd>Esc</kbd> to close the panel without pasting.</li></ol>"
+      },
+      {
+        "h2": "Common problems",
+        "body": "<ul><li><strong>The panel does not open:</strong> confirm funPaste is running (menu bar icon), and that no other app has claimed Shift+Command+V.</li><li><strong>Automatic paste does not work:</strong> re-check the Accessibility permission, or paste manually with Command+V.</li><li><strong>The app was moved or deleted:</strong> re-copy from Applications; macOS preferences may persist after uninstall and can be removed in System Settings.</li></ul>"
+      }
+    ]
+  },
+  "notFound": {
+    "title": "404",
+    "body": "This page does not exist.",
+    "back": "funPaste home",
+    "backZh": "funPaste 首页"
+  },
+  "panel": {
+    "categories": {
+      "recent": { "label": "Recent", "title": "Just copied, and worth seeing first" },
+      "prompt": { "label": "Prompts", "title": "Keep good questions within reach" },
+      "pinned": { "label": "Favorites", "title": "Content worth reusing" },
+      "image": { "label": "Images", "title": "Visual inspiration, quick to find" },
+      "file": { "label": "Files", "title": "File references, no longer scattered" }
+    },
+    "clips": [
+      { "id": "brief", "category": "recent", "type": "Text", "icon": "T", "title": "User experience first", "preview": "I own the requirements; the technical approach, architecture, and implementation details are up to you. The first principle is protecting the user experience.", "source": "Notes", "time": "Just now", "tone": "#9c79e0" },
+      { "id": "code", "category": "recent", "type": "Code", "icon": "⌘", "title": "SwiftUI card focus state", "preview": "@State private var selectedID: Clip.ID?", "source": "Xcode", "time": "2 min ago", "tone": "#67cba7", "code": true },
+      { "id": "url", "category": "recent", "type": "Link", "icon": "↗", "title": "Apple Human Interface Guidelines", "preview": "Design should be clear, predictable, and respect the system habits users already know.", "source": "Safari", "time": "5 min ago", "tone": "#71a7f1" },
+      { "id": "prompt", "category": "prompt", "type": "Template", "icon": "✦", "title": "Help me build this feature", "preview": "Read the existing project structure first, explain how you plan to change it, then edit code, run checks, and summarize.", "source": "Built-in prompt", "time": "Frequent", "tone": "#ff9f5b", "prompt": true },
+      { "id": "reply", "category": "prompt", "type": "Template", "icon": "✦", "title": "Explain something complex", "preview": "Explain the following for a beginner in plain language: conclusion first, then the necessary background.", "source": "Built-in prompt", "time": "Frequent", "tone": "#e18db8", "prompt": true },
+      { "id": "address", "category": "pinned", "type": "Text", "icon": "⌂", "title": "Shipping address", "preview": "Workshop, Jing'an, Shanghai · confirm a time before sending", "source": "Favorite", "time": "Yesterday", "tone": "#f3bc70" },
+      { "id": "image", "category": "image", "type": "Image", "icon": "▧", "title": "Soft sunset palette", "preview": "A color reference of warm citrus, misty lilac, and deep ink blue.", "source": "Screenshot", "time": "Yesterday", "tone": "#ed8875", "image": true },
+      { "id": "file", "category": "file", "type": "File", "icon": "▤", "title": "funPaste ideas.md", "preview": "A unified plan for clipboard history, reusable content, and prompt templates.", "source": "Finder", "time": "Last week", "tone": "#93a6f0" }
+    ],
+    "ui": {
+      "countSuffix": " items",
+      "selectHint": "Enter to select",
+      "clickHint": "Click to select",
+      "selectedToast": "Selected \"{title}\" (simulation)",
+      "promptCopiedToast": "Prompt copied (simulation)",
+      "promptGeneratedToast": "Prompt generated (simulation)",
+      "emptyTitle": "No matches",
+      "emptyBody": "Try another keyword, or browse all items."
+    }
+  }
+}

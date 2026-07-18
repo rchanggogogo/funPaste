@@ -1,0 +1,187 @@
+{
+  "lang": "zh",
+  "htmlLang": "zh-Hans",
+  "hreflang": "zh-Hans",
+  "otherHreflang": "en",
+  "canonicalBase": "https://rchanggogogo.github.io/funPaste/zh/",
+  "otherCanonicalBase": "https://rchanggogogo.github.io/funPaste/",
+  "meta": {
+    "landingTitle": "funPaste — 剪贴历史、Prompt 与收藏，一个快捷键随取随用",
+    "landingDescription": "键盘优先的 macOS 剪贴板工具。把最近复制、常用 Prompt 和收藏留在同一个面板里。按 Shift+Command+V 唤起。本地优先，无账号、无遥测。",
+    "helpTitle": "设置指南 · funPaste",
+    "helpDescription": "如何安装 funPaste、处理首次打开提示、授予辅助功能权限，并用 Shift+Command+V 完成第一次粘贴。",
+    "ogType": "website",
+    "ogImage": "assets/img/og-image.svg"
+  },
+  "nav": {
+    "brand": "funPaste",
+    "download": "下载",
+    "skipToContent": "跳到正文",
+    "langToggleLabel": "EN",
+    "langToggleHrefLanding": "../",
+    "langToggleHrefHelp": "../../help/"
+  },
+  "hero": {
+    "eyebrow": "macOS 剪贴板工具",
+    "title": "复制只是开始。",
+    "lede": "把剪贴历史、常用内容和 Prompt 留在手边，一次快捷键，随时找回并粘贴。从任何 App 按 Shift+Command+V 唤起，方向键选择，回车粘贴回原处。",
+    "shortcut": "⇧⌘V",
+    "shortcutLabel": "打开面板",
+    "ctaPrimary": "下载 Mac 版",
+    "ctaSecondary": "看看怎么用",
+    "compat": "macOS 14+ · Apple 芯片与 Intel · 测试版，未经公证",
+    "visualAlt": "funPaste 快捷粘贴面板预览",
+    "visualPlaceholderTag": "替换为真实 App 截图"
+  },
+  "pillars": {
+    "heading": "为什么是 funPaste",
+    "lede": "很多剪贴板工具只是把复制记录排成一张长列表。funPaste 把刚复制的文字、截图、收藏和 Prompt 都放在同一个面板里，键盘就能完成查找和选择。",
+    "items": [
+      { "glyph": "⚡", "title": "不打断思路", "body": "从任何 App 按 Shift+Command+V 唤起，方向键选择，回车粘贴回原处。" },
+      { "glyph": "✦", "title": "Prompt 也是一等公民", "body": "保存常用 Prompt，用 {{feature}}、{{constraints}} 在粘贴前快速补全。" },
+      { "glyph": "◉", "title": "本地优先", "body": "没有账号、遥测、广告或网络同步；历史、Prompt 和收藏都保存在本机。" }
+    ]
+  },
+  "simulation": {
+    "eyebrow": "交互模拟",
+    "heading": "试试这个面板",
+    "lede": "这是面板的浏览器模拟，不是真实 App。可以切换分类、搜索、用键盘选择项目。在模拟里回车是选中项目——它不会粘贴到别的应用。",
+    "status": "本地私密保存",
+    "ribbonHint": "按住可调整顺序",
+    "searchPlaceholder": "直接输入即可搜索",
+    "searchLabel": "搜索当前分类",
+    "categoriesLabel": "内容分类",
+    "closeLabel": "关闭变量编辑",
+    "keyboardHints": "↑↓ 选择 · ↵ 选择 · ⇧↵ 纯文本 · ⌘1–9 快速",
+    "editorEyebrow": "准备粘贴",
+    "editorHeading": "补全这个 Prompt",
+    "featureLabel": "功能描述",
+    "featurePlaceholder": "例如：增加收藏分组",
+    "constraintLabel": "技术约束",
+    "constraintPlaceholder": "例如：沿用 SwiftUI",
+    "copyBtn": "仅复制",
+    "pasteBtn": "生成",
+    "fallbackAlt": "funPaste 面板静态预览",
+    "fallbackCaption": "交互模拟需要 JavaScript。这是面板的静态预览。"
+  },
+  "features": {
+    "heading": "能做什么",
+    "lede": "funPaste 更像一副随手展开的内容卡组，而不是一张长长的剪贴板列表。",
+    "items": [
+      "记录文本、图片和文件剪贴历史，重复内容自动置顶。",
+      "搜索最近复制的内容，并用键盘快速选择。",
+      "创建、编辑和删除自己的 Prompt 与收藏。",
+      "一键收藏最近复制的文字或图片。",
+      "在粘贴前补全 Prompt 变量。",
+      "随时暂停记录或清空全部历史。",
+      "以菜单栏 Agent 运行，不占用 Dock。",
+      "根据 macOS 首选语言自动切换英文或简体中文界面。"
+    ]
+  },
+  "install": {
+    "heading": "几步装好",
+    "lede": "当前测试版是 ad-hoc 签名、未经 Apple 公证，所以首次打开需要多一步。",
+    "steps": [
+      { "title": "下载通用 DMG", "body": "一个安装包同时支持 macOS 14 或更高版本的 Apple 芯片与 Intel Mac。" },
+      { "title": "把 funPaste 拖进应用程序", "body": "打开 DMG，把 App 拖入“应用程序”文件夹。" },
+      { "title": "按住 Control 点按并打开", "body": "首次打开时按住 Control 点按 App，选择“打开”并确认。macOS 会提示该 App 未经公证。" },
+      { "title": "允许辅助功能（可选）", "body": "在“系统设置 → 隐私与安全性 → 辅助功能”中允许 funPaste。该权限仅用于模拟 Command+V。拒绝后，复制和手动粘贴仍可使用。" }
+    ],
+    "helpLink": "查看完整设置指南"
+  },
+  "privacy": {
+    "heading": "隐私不是脚注",
+    "lede": "funPaste 会接触你复制的内容，因此隐私边界必须说清楚。",
+    "points": [
+      "当前应用代码不发起网络请求，也不记录剪贴板正文到日志。",
+      "剪贴历史和内容库通过 macOS UserDefaults 持久化，应用层没有额外加密。",
+      "敏感内容过滤只是启发式规则，不能保证识别所有密码、Token 或个人信息。",
+      "辅助功能权限仅用于模拟 Command+V；拒绝后仍可复制并手动粘贴。"
+    ],
+    "link": "查看完整隐私说明",
+    "linkHref": "https://github.com/rchanggogogo/funPaste/blob/main/PRIVACY.md"
+  },
+  "download": {
+    "heading": "一个快捷键，复制到位",
+    "body": "下载最新的通用 DMG。它是 ad-hoc 签名、未经公证——请按上面的步骤安装。",
+    "ctaPrimary": "下载最新 DMG",
+    "ctaSecondary": "全部版本",
+    "ctaSecondaryHref": "https://github.com/rchanggogogo/funPaste/releases",
+    "compat": "macOS 14+ · Apple 芯片与 Intel · 测试版，未经公证",
+    "versionMeta": "通用 DMG · ad-hoc 签名"
+  },
+  "footer": {
+    "repo": "GitHub 仓库",
+    "repoHref": "https://github.com/rchanggogogo/funPaste",
+    "releases": "全部版本",
+    "releasesHref": "https://github.com/rchanggogogo/funPaste/releases",
+    "help": "帮助",
+    "privacy": "隐私",
+    "privacyHref": "https://github.com/rchanggogogo/funPaste/blob/main/PRIVACY.md",
+    "license": "MIT 许可证",
+    "langToggleLabel": "EN"
+  },
+  "help": {
+    "eyebrow": "设置",
+    "title": "设置指南",
+    "back": "返回 funPaste",
+    "intro": "本指南介绍如何安装 funPaste、处理首次打开提示、授予辅助功能权限，并完成第一次粘贴。",
+    "sections": [
+      {
+        "h2": "安装 funPaste",
+        "body": "<ol><li>从 <a href=\"https://github.com/rchanggogogo/funPaste/releases\">Releases 页面</a>下载最新的通用 DMG。</li><li>打开 DMG，把 funPaste 拖入<strong>“应用程序”</strong>。</li><li>该 DMG 同时支持 macOS 14 或更高版本的 Apple 芯片与 Intel Mac。</li></ol>"
+      },
+      {
+        "h2": "首次打开与 Gatekeeper",
+        "body": "<p>因为测试版是 ad-hoc 签名、未经 Apple 公证，首次打开时 macOS 会提示：</p><ol><li>在<strong>“应用程序”</strong>里按住 Control 点按 funPaste，选择<strong>“打开”</strong>。</li><li>确认要打开。出现提示是因为 App 未经公证，并不是检测到了问题。</li><li>首次确认后，之后打开 funPaste 就会正常启动。</li></ol>"
+      },
+      {
+        "h2": "辅助功能权限",
+        "body": "<p>funPaste 请求辅助功能权限，仅用于模拟 <kbd>Command+V</kbd>，把选中的内容粘贴回你正在使用的 App。</p><div class=\"callout\">如果拒绝该权限，剪贴板记录和复制仍可使用——只是需要手动按 <kbd>Command+V</kbd> 粘贴。</div><ol><li>打开<strong>“系统设置 → 隐私与安全性 → 辅助功能”</strong>。</li><li>在列表中启用 funPaste。</li><li>如果面板仍无法自动粘贴，退出并重新打开 funPaste。</li></ol>"
+      },
+      {
+        "h2": "第一次粘贴",
+        "body": "<ol><li>在任意 App 里复制点什么。</li><li>按 <kbd>Shift+Command+V</kbd> 打开面板。</li><li>用 <kbd>↑</kbd> / <kbd>↓</kbd> 移动选择。</li><li>按 <kbd>回车</kbd> 把选中内容粘贴回光标所在位置。</li><li>按 <kbd>Esc</kbd> 关闭面板且不粘贴。</li></ol>"
+      },
+      {
+        "h2": "常见问题",
+        "body": "<ul><li><strong>面板打不开：</strong>确认 funPaste 正在运行（菜单栏图标），且没有其他 App 占用了 Shift+Command+V。</li><li><strong>自动粘贴无效：</strong>复查辅助功能权限，或直接手动按 Command+V 粘贴。</li><li><strong>App 被移动或删除：</strong>从“应用程序”重新拷贝；卸载后 macOS 偏好可能仍保留，可在系统设置中删除。</li></ul>"
+      }
+    ]
+  },
+  "notFound": {
+    "title": "404",
+    "body": "这个页面不存在。",
+    "back": "funPaste home",
+    "backZh": "funPaste 首页"
+  },
+  "panel": {
+    "categories": {
+      "recent": { "label": "最近复制", "title": "刚复制，也最应该先看到" },
+      "prompt": { "label": "Prompt", "title": "把好问题留在触手可及处" },
+      "pinned": { "label": "收藏", "title": "真正值得反复使用的内容" },
+      "image": { "label": "图片", "title": "视觉灵感，也能快速找回" },
+      "file": { "label": "文件", "title": "文件引用，不再散落在记忆里" }
+    },
+    "clips": [
+      { "id": "brief", "category": "recent", "type": "文本", "icon": "T", "title": "产品体验优先的实现原则", "preview": "我只负责把控需求；技术方案、架构和实现细节由你决定。首要原则是保证用户体验。", "source": "备忘录", "time": "刚刚", "tone": "#9c79e0" },
+      { "id": "code", "category": "recent", "type": "代码", "icon": "⌘", "title": "SwiftUI 卡片焦点状态", "preview": "@State private var selectedID: Clip.ID?", "source": "Xcode", "time": "2 分钟前", "tone": "#67cba7", "code": true },
+      { "id": "url", "category": "recent", "type": "链接", "icon": "↗", "title": "Apple Human Interface Guidelines", "preview": "设计应该清晰、可预测，并尊重用户已掌握的系统习惯。", "source": "Safari", "time": "5 分钟前", "tone": "#71a7f1" },
+      { "id": "prompt", "category": "prompt", "type": "模板", "icon": "✦", "title": "请帮我完成这个功能", "preview": "先阅读现有项目结构，说明准备怎么改，修改代码、运行检查并总结结果。", "source": "内置 Prompt", "time": "常用", "tone": "#ff9f5b", "prompt": true },
+      { "id": "reply", "category": "prompt", "type": "模板", "icon": "✦", "title": "把复杂内容说清楚", "preview": "请用面向初学者的中文解释以下内容，先给结论，再补充必要的背景。", "source": "内置 Prompt", "time": "常用", "tone": "#e18db8", "prompt": true },
+      { "id": "address", "category": "pinned", "type": "常用文本", "icon": "⌂", "title": "常用收件地址", "preview": "上海市静安区 · 个人工作室 · 请提前联系确认收件时间", "source": "收藏", "time": "昨天", "tone": "#f3bc70" },
+      { "id": "image", "category": "image", "type": "图片", "icon": "▧", "title": "柔和日落色板", "preview": "温暖柑橘、雾紫与深墨蓝的配色参考", "source": "截图", "time": "昨天", "tone": "#ed8875", "image": true },
+      { "id": "file", "category": "file", "type": "文件", "icon": "▤", "title": "funPaste 产品想法.md", "preview": "剪贴历史、常用内容和 Prompt 模板的一体化整理方案。", "source": "Finder", "time": "上周", "tone": "#93a6f0" }
+    ],
+    "ui": {
+      "countSuffix": " 个项目",
+      "selectHint": "回车选择",
+      "clickHint": "点击选择",
+      "selectedToast": "已选择「{title}」（模拟）",
+      "promptCopiedToast": "Prompt 已复制（模拟）",
+      "promptGeneratedToast": "Prompt 已生成（模拟）",
+      "emptyTitle": "没有找到相关内容",
+      "emptyBody": "换个关键词，或回到全部项目继续浏览。"
+    }
+  }
+}

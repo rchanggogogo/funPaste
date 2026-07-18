@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="{{htmlLang}}" data-lang="{{lang}}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none';" />
+    <title>{{meta.landingTitle}}</title>
+    <meta name="description" content="{{meta.landingDescription}}" />
+    <link rel="canonical" href="{{canonicalLanding}}" />
+    <link rel="alternate" hreflang="{{hreflang}}" href="{{canonicalLanding}}" />
+    <link rel="alternate" hreflang="{{otherHreflang}}" href="{{otherCanonicalLanding}}" />
+    <link rel="icon" href="{{assetsPath}}img/favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="{{meta.ogType}}" />
+    <meta property="og:title" content="{{meta.landingTitle}}" />
+    <meta property="og:description" content="{{meta.landingDescription}}" />
+    <meta property="og:url" content="{{canonicalLanding}}" />
+    <meta property="og:image" content="{{ogImageAbsolute}}" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{{meta.landingTitle}}" />
+    <meta name="twitter:description" content="{{meta.landingDescription}}" />
+    <meta name="twitter:image" content="{{ogImageAbsolute}}" />
+    <link rel="stylesheet" href="{{assetsPath}}css/tokens.css" />
+    <link rel="stylesheet" href="{{assetsPath}}css/site.css" />
+    <link rel="stylesheet" href="{{assetsPath}}css/panel.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{{nav.skipToContent}}</a>
+    <nav class="nav" aria-label="Primary">
+      <a class="brand" href="{{nav.brandHref}}" aria-label="funPaste home">
+        <span class="brand-mark">f</span><span>funPaste</span>
+      </a>
+      <div class="nav-spacer"></div>
+      <a class="lang-toggle" href="{{nav.langToggleHref}}" hreflang="{{otherHreflang}}" lang="{{otherHtmlLang}}">{{nav.langToggleLabel}}</a>
+      <a class="btn btn-primary" href="__LATEST_DMG_URL__">{{nav.download}}</a>
+    </nav>
+
+    <main id="main">
+      <header class="hero">
+        <div class="shell hero-grid">
+          <div>
+            <p class="eyebrow-global">{{hero.eyebrow}}</p>
+            <h1>{{hero.title}}</h1>
+            <p class="lede">{{hero.lede}}</p>
+            <span class="shortcut-badge"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>V</kbd> <span>{{hero.shortcutLabel}}</span></span>
+            <div class="hero-cta">
+              <a class="btn btn-primary btn-lg" href="__LATEST_DMG_URL__">{{hero.ctaPrimary}}</a>
+              <a class="btn btn-secondary btn-lg" href="#simulation">{{hero.ctaSecondary}}</a>
+            </div>
+            <p class="compat-line"><strong>{{hero.compat}}</strong></p>
+          </div>
+          <div class="hero-visual">
+            <span class="placeholder-tag">{{hero.visualPlaceholderTag}}</span>
+            <img src="{{heroVisualSrc}}" alt="{{hero.visualAlt}}" width="1200" height="750" />
+          </div>
+        </div>
+      </header>
+
+      <section class="section" aria-labelledby="why-heading">
+        <div class="shell">
+          <h2 class="section-title" id="why-heading">{{pillars.heading}}</h2>
+          <p class="section-lede">{{pillars.lede}}</p>
+          <div class="pillars">
+            {{#each pillars.items}}
+            <article class="pillar">
+              <div class="glyph" aria-hidden="true">{{glyph}}</div>
+              <h3>{{title}}</h3>
+              <p>{{body}}</p>
+            </article>
+            {{/each}}
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="simulation" aria-labelledby="sim-heading">
+        <div class="shell">
+          <p class="eyebrow-global">{{simulation.eyebrow}}</p>
+          <h2 class="section-title" id="sim-heading">{{simulation.heading}}</h2>
+          <p class="section-lede">{{simulation.lede}}</p>
+
+          <div class="simulation">
+            <div class="ambient ambient-one" aria-hidden="true"></div>
+            <div class="ambient ambient-two" aria-hidden="true"></div>
+            <div class="context-window" aria-hidden="true">
+              <div class="context-header"><span class="traffic"><i></i><i></i><i></i></span><span class="context-title">•••</span><span class="context-action">•••</span></div>
+              <div class="context-lines"><span class="line wide"></span><span class="line medium"></span><span class="line short"></span><span class="line wide"></span><span class="line long"></span></div>
+            </div>
+
+            <div class="simulation-live">
+              <div class="deck-shell">
+                <header class="deck-header">
+                  <div class="brand"><span class="brand-mark">f</span><span>funPaste</span></div>
+                  <div class="status"><span class="status-dot"></span>{{simulation.status}}</div>
+                </header>
+                <nav class="ribbon" aria-label="{{simulation.categoriesLabel}}">
+                  <button class="ribbon-item active" data-category="recent" data-ribbon-item type="button">{{panel.categories.recent.label}}</button>
+                  <button class="ribbon-item" data-category="prompt" data-ribbon-item type="button">{{panel.categories.prompt.label}}</button>
+                  <button class="ribbon-item" data-category="pinned" data-ribbon-item type="button">{{panel.categories.pinned.label}}</button>
+                  <button class="ribbon-item" data-category="image" data-ribbon-item type="button">{{panel.categories.image.label}}</button>
+                  <button class="ribbon-item" data-category="file" data-ribbon-item type="button">{{panel.categories.file.label}}</button>
+                  <span class="ribbon-hint">{{simulation.ribbonHint}}</span>
+                </nav>
+                <div class="deck-intro">
+                  <div>
+                    <p class="eyebrow" data-category-label>{{panel.categories.recent.label}}</p>
+                    <h2 data-deck-title>{{panel.categories.recent.title}}</h2>
+                  </div>
+                  <span class="count-pill" data-count-pill>{{panel.clips.length}}{{panel.ui.countSuffix}}</span>
+                </div>
+                <div class="deck-viewport">
+                  <div class="clip-deck" data-clip-deck role="list"></div>
+                </div>
+                <section class="prompt-editor" data-prompt-editor hidden aria-label="{{simulation.editorHeading}}">
+                  <div class="prompt-editor-heading">
+                    <div><p class="eyebrow">{{simulation.editorEyebrow}}</p><h3>{{simulation.editorHeading}}</h3></div>
+                    <button class="icon-button" data-close-editor type="button" aria-label="{{simulation.closeLabel}}">×</button>
+                  </div>
+                  <label>{{simulation.featureLabel}}<input data-feature-input placeholder="{{simulation.featurePlaceholder}}" /></label>
+                  <label>{{simulation.constraintLabel}}<input data-constraint-input placeholder="{{simulation.constraintPlaceholder}}" /></label>
+                  <div class="prompt-actions">
+                    <button class="secondary-action" data-copy-prompt type="button">{{simulation.copyBtn}}</button>
+                    <button class="primary-action" data-paste-prompt type="button">{{simulation.pasteBtn}}</button>
+                  </div>
+                </section>
+                <footer class="deck-footer">
+                  <label class="search-box"><span aria-hidden="true">⌕</span><input data-search-input type="text" placeholder="{{simulation.searchPlaceholder}}" aria-label="{{simulation.searchLabel}}" /></label>
+                  <div class="keyboard-hints">{{simulation.keyboardHints}}</div>
+                </footer>
+              </div>
+            </div>
+
+            <div class="no-js-fallback">
+              <img src="{{assetsPath}}img/panel-fallback-{{lang}}.svg" alt="{{simulation.fallbackAlt}}" width="1200" height="750" />
+              <p style="text-align:center;color:var(--muted);margin-top:12px">{{simulation.fallbackCaption}}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="features-heading">
+        <div class="shell">
+          <h2 class="section-title" id="features-heading">{{features.heading}}</h2>
+          <p class="section-lede">{{features.lede}}</p>
+          <div class="features">
+            {{#each features.items}}
+            <div class="feature"><span class="check" aria-hidden="true">✓</span><span>{{this}}</span></div>
+            {{/each}}
+          </div>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="install-heading">
+        <div class="shell">
+          <h2 class="section-title" id="install-heading">{{install.heading}}</h2>
+          <p class="section-lede">{{install.lede}}</p>
+          <div class="steps">
+            {{#each install.steps}}
+            <article class="step">
+              <h3>{{title}}</h3>
+              <p>{{body}}</p>
+            </article>
+            {{/each}}
+          </div>
+          <p style="margin-top:20px"><a href="{{install.helpHref}}">{{install.helpLink}} →</a></p>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="privacy-heading">
+        <div class="shell">
+          <h2 class="section-title" id="privacy-heading">{{privacy.heading}}</h2>
+          <p class="section-lede">{{privacy.lede}}</p>
+          <div class="privacy-block">
+            <ul>
+              {{#each privacy.points}}
+              <li>{{this}}</li>
+              {{/each}}
+            </ul>
+            <a href="{{privacy.linkHref}}">{{privacy.link}} →</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="shell">
+          <div class="download-block">
+            <h2>{{download.heading}}</h2>
+            <p>{{download.body}}</p>
+            <a class="btn btn-primary btn-lg" href="__LATEST_DMG_URL__">{{download.ctaPrimary}}</a>
+            <a class="btn btn-secondary" href="{{download.ctaSecondaryHref}}">{{download.ctaSecondary}}</a>
+            <span class="compat-line">{{download.compat}}</span>
+            <p class="download-meta">__LATEST_VERSION__ · {{download.versionMeta}}</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="shell footer-grid">
+        <span class="brand"><span class="brand-mark">f</span> funPaste</span>
+        <nav class="footer-links" aria-label="Footer">
+          <a href="{{footer.repoHref}}">{{footer.repo}}</a>
+          <a href="{{footer.releasesHref}}">{{footer.releases}}</a>
+          <a href="{{footer.helpHref}}">{{footer.help}}</a>
+          <a href="{{footer.privacyHref}}">{{footer.privacy}}</a>
+          <a href="https://github.com/rchanggogogo/funPaste/blob/main/LICENSE">{{footer.license}}</a>
+          <a class="lang-toggle" href="{{nav.langToggleHref}}" hreflang="{{otherHreflang}}" lang="{{otherHtmlLang}}">{{footer.langToggleLabel}}</a>
+        </nav>
+        <p class="footer-license">MIT License · macOS 14+ · not notarized</p>
+      </div>
+    </footer>
+
+    <div class="toast" data-toast role="status" aria-live="polite"></div>
+
+    <script src="{{assetsPath}}js/panel-data.js"></script>
+    <script src="{{assetsPath}}js/panel.js"></script>
+    <script src="{{assetsPath}}js/lang.js"></script>
+  </body>
+</html>
