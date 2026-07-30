@@ -13,6 +13,7 @@ public struct RibbonDeckView: View {
     @State private var libraryEditorState = LibraryEditorState()
     @State private var itemPendingDeletion: Clip?
     @State private var promptFilter: PromptLibraryFilter = .all
+    @StateObject private var launchAtLogin = LaunchAtLoginController()
     @AppStorage("funPaste.promptSortOrder") private var promptSortRawValue = PromptSortOrder.smart.rawValue
 
     private let compact: Bool
@@ -87,7 +88,10 @@ public struct RibbonDeckView: View {
         }
         .preferredColorScheme(.dark)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: category)
-        .onAppear { selectedID = visibleClips.first?.id }
+        .onAppear {
+            selectedID = visibleClips.first?.id
+            launchAtLogin.refresh()
+        }
         .onChange(of: category) { _, _ in selectedID = visibleClips.first?.id }
         .onReceive(NotificationCenter.default.publisher(for: .funPastePanelDidShow)) { _ in
             resetForOpening()
@@ -146,6 +150,27 @@ public struct RibbonDeckView: View {
                 .font(.title3.bold())
             Spacer()
             Menu {
+                Toggle(
+                    FunPasteLocalization.string("settings.launchAtLogin"),
+                    isOn: Binding(
+                        get: { launchAtLogin.state.isEnabled },
+                        set: { launchAtLogin.setEnabled($0) }
+                    )
+                )
+                .disabled(launchAtLogin.state == .unavailable)
+
+                if launchAtLogin.state == .requiresApproval {
+                    Text(FunPasteLocalization.string("settings.launchAtLogin.requiresApproval"))
+                    Button(FunPasteLocalization.string("settings.launchAtLogin.openSystemSettings")) {
+                        launchAtLogin.openSystemSettings()
+                    }
+                } else if launchAtLogin.state == .unavailable {
+                    Text(FunPasteLocalization.string("settings.launchAtLogin.unavailable"))
+                } else if let errorMessage = launchAtLogin.errorMessage {
+                    Text(errorMessage)
+                }
+
+                Divider()
                 Section(FunPasteLocalization.string("settings.historyLimit")) {
                     ForEach(ClipboardStore.availableHistoryMaximumCounts, id: \.self) { maximumCount in
                         Button {
@@ -163,17 +188,19 @@ public struct RibbonDeckView: View {
                     }
                 }
             } label: {
-                Image(systemName: "gearshape")
-                    .font(.caption.weight(.semibold))
-                    .frame(width: 28, height: 28)
-                    .contentShape(Circle())
+                ZStack {
+                    Circle().fill(.white.opacity(0.1))
+                    Image(systemName: "gearshape")
+                        .font(.caption.weight(.semibold))
+                }
+                .frame(width: 28, height: 28)
+                .contentShape(Circle())
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
-            .frame(width: 28, height: 28)
+            .fixedSize()
             .contentShape(Circle())
             .clipShape(Circle())
-            .background(.white.opacity(0.1), in: Circle())
             .pointingCursor()
             .accessibilityLabel(FunPasteLocalization.string("settings.title"))
             if compact {
