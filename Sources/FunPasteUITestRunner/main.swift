@@ -40,6 +40,95 @@ expect(
 
 print("通过：系统语言选择与双语 Prompt")
 
+@MainActor
+final class LaunchAtLoginServiceSpy: LaunchAtLoginServicing {
+    var state: LaunchAtLoginState = .disabled
+    var registrationCount = 0
+    var unregistrationCount = 0
+    var systemSettingsOpenCount = 0
+
+    func register() {
+        registrationCount += 1
+        state = .enabled
+    }
+
+    func unregister() {
+        unregistrationCount += 1
+        state = .disabled
+    }
+
+    func openSystemSettings() {
+        systemSettingsOpenCount += 1
+    }
+}
+
+let launchAtLoginService = LaunchAtLoginServiceSpy()
+let launchAtLoginController = LaunchAtLoginController(service: launchAtLoginService)
+launchAtLoginController.setEnabled(true)
+expect(
+    launchAtLoginController.state == .enabled &&
+        launchAtLoginController.state.isEnabled &&
+        launchAtLoginService.registrationCount == 1,
+    "用户启用开机自启动时必须注册主应用登录项"
+)
+launchAtLoginController.setEnabled(false)
+expect(
+    launchAtLoginController.state == .disabled &&
+        !launchAtLoginController.state.isEnabled &&
+        launchAtLoginService.unregistrationCount == 1,
+    "用户关闭开机自启动时必须注销主应用登录项"
+)
+launchAtLoginService.state = .requiresApproval
+launchAtLoginController.refresh()
+launchAtLoginController.openSystemSettings()
+expect(
+    launchAtLoginController.state == .requiresApproval &&
+        launchAtLoginService.systemSettingsOpenCount == 1,
+    "系统要求批准登录项时必须提示用户并可打开对应的系统设置"
+)
+
+print("通过：开机自启动设置")
+
+let launchAgentTestDirectory = FileManager.default.temporaryDirectory
+    .appendingPathComponent("funPaste-launch-agent-tests-\(UUID().uuidString)", isDirectory: true)
+defer { try? FileManager.default.removeItem(at: launchAgentTestDirectory) }
+let launchAgentAppURL = launchAgentTestDirectory
+    .appendingPathComponent("Applications/funPaste.app", isDirectory: true)
+let launchAgentsDirectory = launchAgentTestDirectory
+    .appendingPathComponent("Library/LaunchAgents", isDirectory: true)
+let userLaunchAgentService = UserLaunchAgentService(
+    appURL: launchAgentAppURL,
+    launchAgentsDirectory: launchAgentsDirectory
+)
+try! userLaunchAgentService.register()
+
+let launchAgentURL = launchAgentsDirectory
+    .appendingPathComponent("\(UserLaunchAgentService.label).plist")
+let launchAgentPropertyList = try! PropertyListSerialization.propertyList(
+    from: Data(contentsOf: launchAgentURL),
+    options: [],
+    format: nil
+) as! [String: Any]
+expect(
+    userLaunchAgentService.state == .enabled &&
+        launchAgentPropertyList["Label"] as? String == UserLaunchAgentService.label &&
+        launchAgentPropertyList["RunAtLoad"] as? Bool == true &&
+        launchAgentPropertyList["ProgramArguments"] as? [String] == [
+            "/usr/bin/open",
+            "-gj",
+            launchAgentAppURL.path
+        ],
+    "临时签名版本必须创建可在用户登录时启动当前应用的 LaunchAgent"
+)
+try! userLaunchAgentService.unregister()
+expect(
+    userLaunchAgentService.state == .disabled &&
+        !FileManager.default.fileExists(atPath: launchAgentURL.path),
+    "用户关闭开机自启动时必须删除兼容登录项"
+)
+
+print("通过：临时签名版本开机自启动兼容")
+
 expect(
     Array(ClipCategory.defaultOrder.prefix(2)) == [.recent, .prompt],
     "默认分类必须先展示最近复制，再展示 Prompt"
