@@ -14,6 +14,9 @@ public final class QuickPanelController {
     public static let panelActivationPolicy: NSApplication.ActivationPolicy = .accessory
     public static let restingActivationPolicy: NSApplication.ActivationPolicy = .accessory
     public static let defaultCategoryOnOpen: ClipCategory = .recent
+    public static let pasteActivationDelayMilliseconds = 16
+    public static let pasteTargetActivationRetryInterval = 5
+    public static let pasteFadeDuration: TimeInterval = 0.08
 
     public static func panelSize(for visibleFrame: NSRect) -> NSSize {
         let inset: CGFloat = 18
@@ -32,6 +35,7 @@ public final class QuickPanelController {
     private var outsideClickMonitor: Any?
     private var localKeyMonitor: Any?
     private var isWaitingToPresent = false
+    private var pendingPanelOrderOutTask: Task<Void, Never>?
 
     public init(store: ClipboardStore) {
         self.store = store
@@ -87,6 +91,9 @@ public final class QuickPanelController {
 
         let screen = NSScreen.screens.first { $0.frame.contains(NSEvent.mouseLocation) } ?? NSScreen.main
         let panel = makePanelIfNeeded()
+        pendingPanelOrderOutTask?.cancel()
+        pendingPanelOrderOutTask = nil
+        panel.alphaValue = 1
         if let screen {
             let frame = screen.visibleFrame
             let panelSize = Self.panelSize(for: frame)
@@ -118,7 +125,10 @@ public final class QuickPanelController {
     public func dismiss() {
         isWaitingToPresent = false
         promptComposerController.close()
+        pendingPanelOrderOutTask?.cancel()
+        pendingPanelOrderOutTask = nil
         panel?.orderOut(nil)
+        panel?.alphaValue = 1
         if Self.requiresApplicationActivation {
             NSApp.setActivationPolicy(Self.restingActivationPolicy)
         }
@@ -143,8 +153,11 @@ public final class QuickPanelController {
 
     private func prepareForPaste(_ completion: @escaping @MainActor () -> Void) {
         isWaitingToPresent = false
-        promptComposerController.close()
-        panel?.orderOut(nil)
+        promptComposerController.close(
+            behavior: .prepareForPaste,
+            fadeDuration: Self.pasteFadeDuration
+        )
+        fadeOutPanelForPaste()
         guard let target = pasteTargetApplication, !target.isTerminated else {
             panelLogger.error("没有可恢复的粘贴目标")
             store.showFeedback(FunPasteLocalization.string("feedback.copiedManualPaste"))
@@ -162,13 +175,12 @@ public final class QuickPanelController {
             },
             scheduleTargetActivation: { activation in
                 Task { @MainActor in
-                    try? await Task.sleep(for: .milliseconds(80))
+                    try? await Task.sleep(for: .milliseconds(Self.pasteActivationDelayMilliseconds))
                     activation()
                 }
             },
             activateTarget: { [weak self] in
                 panelLogger.notice("开始恢复粘贴目标：\(target.processIdentifier)")
-                target.activate()
                 self?.waitForPasteTarget(attemptsRemaining: 50, completion: completion)
             }
         )
@@ -178,23 +190,51 @@ public final class QuickPanelController {
         attemptsRemaining: Int,
         completion: @escaping @MainActor () -> Void
     ) {
-        if pasteTargetState.isFrontmost(
+        let isFrontmost = pasteTargetState.isFrontmost(
             processIdentifier: NSWorkspace.shared.frontmostApplication?.processIdentifier
+        )
+        switch PasteTargetActivationCoordinator.nextAction(
+            isFrontmost: isFrontmost,
+            attemptsRemaining: attemptsRemaining,
+            retryInterval: Self.pasteTargetActivationRetryInterval
         ) {
+        case .paste:
             panelLogger.notice("粘贴目标已恢复前台")
             completion()
-            return
-        }
-
-        guard attemptsRemaining > 0 else {
+        case .fail:
             panelLogger.error("粘贴目标未在限定时间内恢复前台")
             store.showFeedback(FunPasteLocalization.string("feedback.copiedManualPaste"))
-            return
+        case .retryActivation:
+            pasteTargetApplication?.activate()
+            schedulePasteTargetCheck(attemptsRemaining: attemptsRemaining - 1, completion: completion)
+        case .wait:
+            schedulePasteTargetCheck(attemptsRemaining: attemptsRemaining - 1, completion: completion)
         }
+    }
 
+    private func schedulePasteTargetCheck(
+        attemptsRemaining: Int,
+        completion: @escaping @MainActor () -> Void
+    ) {
         Task { @MainActor [weak self] in
             try? await Task.sleep(for: .milliseconds(20))
-            self?.waitForPasteTarget(attemptsRemaining: attemptsRemaining - 1, completion: completion)
+            self?.waitForPasteTarget(attemptsRemaining: attemptsRemaining, completion: completion)
+        }
+    }
+
+    private func fadeOutPanelForPaste() {
+        guard let panel else { return }
+        pendingPanelOrderOutTask?.cancel()
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = Self.pasteFadeDuration
+            panel.animator().alphaValue = 0
+        }
+        pendingPanelOrderOutTask = Task { @MainActor [weak self, weak panel] in
+            try? await Task.sleep(for: .milliseconds(Int(Self.pasteFadeDuration * 1_000)))
+            guard !Task.isCancelled else { return }
+            panel?.orderOut(nil)
+            panel?.alphaValue = 1
+            self?.pendingPanelOrderOutTask = nil
         }
     }
 
@@ -244,9 +284,16 @@ public final class QuickPanelController {
             },
             onPaste: { [weak self] preparedPrompt in
                 guard let self else { return }
-                self.promptComposerController.close()
-                self.store.recordPromptUse(id: prompt.id)
-                self.store.paste(preparedPrompt) { [weak self] completion in
+                self.promptComposerController.close(
+                    behavior: .prepareForPaste,
+                    fadeDuration: Self.pasteFadeDuration
+                )
+                self.store.paste(
+                    preparedPrompt,
+                    onPasteEventPosted: { [weak self] in
+                        self?.store.recordPromptUse(id: prompt.id)
+                    }
+                ) { [weak self] completion in
                     guard let self else {
                         completion()
                         return

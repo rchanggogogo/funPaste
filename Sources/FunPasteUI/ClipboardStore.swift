@@ -194,6 +194,7 @@ public final class ClipboardStore: ObservableObject {
 
     public func paste(
         _ clip: Clip,
+        onPasteEventPosted: @escaping @MainActor () -> Void = {},
         prepareForPaste: @escaping (@escaping @MainActor () -> Void) -> Void = { completion in completion() }
     ) {
         guard copy(clip) else { return }
@@ -202,7 +203,11 @@ public final class ClipboardStore: ObservableObject {
             authorization: pasteEventAuthorization,
             prepareForPaste: prepareForPaste
         ) { [weak self] in
-            self?.postPasteEvent(for: clip)
+            guard let self else { return }
+            PasteEventPostingCoordinator.perform(
+                postPasteEvent: { self.postPasteEvent(for: clip) },
+                onPasteEventPosted: onPasteEventPosted
+            )
         }
         if !hadAccessBeforeAttempt {
             clipboardLogger.notice("预检查未授权，继续发送事件以触发 PostEvent 授权")

@@ -1,12 +1,22 @@
 import AppKit
 import SwiftUI
 
+public enum PromptComposerCloseBehavior: Sendable {
+    case returnToPanel
+    case prepareForPaste
+
+    public var restoresParentPanel: Bool {
+        self == .returnToPanel
+    }
+}
+
 @MainActor
 public final class PromptComposerController: NSObject, NSWindowDelegate {
     public private(set) var isVisible = false
 
     private var panel: NSPanel?
     private var onWindowClosed: (() -> Void)?
+    private var pendingOrderOutTask: Task<Void, Never>?
 
     public func show(
         prompt: Clip,
@@ -16,6 +26,9 @@ public final class PromptComposerController: NSObject, NSWindowDelegate {
         onWindowClosed: @escaping () -> Void
     ) {
         let panel = makePanelIfNeeded()
+        pendingOrderOutTask?.cancel()
+        pendingOrderOutTask = nil
+        panel.alphaValue = 1
         self.onWindowClosed = onWindowClosed
         panel.contentView = NSHostingView(
             rootView: PromptComposerView(
@@ -33,18 +46,46 @@ public final class PromptComposerController: NSObject, NSWindowDelegate {
         panel.makeKeyAndOrderFront(nil)
     }
 
-    public func close() {
+    public func close(
+        behavior: PromptComposerCloseBehavior = .returnToPanel,
+        fadeDuration: TimeInterval = 0
+    ) {
         guard isVisible else { return }
         isVisible = false
-        panel?.orderOut(nil)
-        onWindowClosed?()
-        onWindowClosed = nil
+        orderOutPanel(fadeDuration: fadeDuration)
+        let onWindowClosed = onWindowClosed
+        self.onWindowClosed = nil
+        if behavior.restoresParentPanel {
+            onWindowClosed?()
+        }
     }
 
     public func windowWillClose(_ notification: Notification) {
         isVisible = false
         onWindowClosed?()
         onWindowClosed = nil
+    }
+
+    private func orderOutPanel(fadeDuration: TimeInterval) {
+        guard let panel else { return }
+        pendingOrderOutTask?.cancel()
+        guard fadeDuration > 0 else {
+            panel.orderOut(nil)
+            panel.alphaValue = 1
+            return
+        }
+
+        NSAnimationContext.runAnimationGroup { context in
+            context.duration = fadeDuration
+            panel.animator().alphaValue = 0
+        }
+        pendingOrderOutTask = Task { @MainActor [weak self, weak panel] in
+            try? await Task.sleep(for: .milliseconds(Int(fadeDuration * 1_000)))
+            guard !Task.isCancelled else { return }
+            panel?.orderOut(nil)
+            panel?.alphaValue = 1
+            self?.pendingOrderOutTask = nil
+        }
     }
 
     private func makePanelIfNeeded() -> NSPanel {

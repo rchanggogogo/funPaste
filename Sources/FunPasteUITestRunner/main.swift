@@ -483,6 +483,18 @@ expect(
 
 print("通过：未授权时仍尝试发送粘贴事件")
 
+var pasteEventPostingSteps: [String] = []
+PasteEventPostingCoordinator.perform(
+    postPasteEvent: { pasteEventPostingSteps.append("发送粘贴") },
+    onPasteEventPosted: { pasteEventPostingSteps.append("记录使用") }
+)
+expect(
+    pasteEventPostingSteps == ["发送粘贴", "记录使用"],
+    "Prompt 使用记录必须发生在粘贴事件发送之后"
+)
+
+print("通过：粘贴后记录 Prompt 使用")
+
 var focusRestorationSteps: [String] = []
 PasteFocusRestorer.restore(
     deactivateApplication: { focusRestorationSteps.append("退出前台") },
@@ -499,6 +511,43 @@ expect(
 )
 
 print("通过：粘贴焦点恢复顺序")
+
+expect(
+    PromptComposerCloseBehavior.returnToPanel.restoresParentPanel &&
+        !PromptComposerCloseBehavior.prepareForPaste.restoresParentPanel &&
+        QuickPanelController.pasteActivationDelayMilliseconds == 16 &&
+        QuickPanelController.pasteTargetActivationRetryInterval == 5 &&
+        QuickPanelController.pasteFadeDuration == 0.08,
+    "Prompt 生成并粘贴时不得重新激活主面板并抢走原输入框焦点"
+)
+
+print("通过：Prompt 粘贴关闭策略")
+
+expect(
+    PasteTargetActivationCoordinator.nextAction(
+        isFrontmost: true,
+        attemptsRemaining: 50,
+        retryInterval: 5
+    ) == .paste &&
+        PasteTargetActivationCoordinator.nextAction(
+            isFrontmost: false,
+            attemptsRemaining: 50,
+            retryInterval: 5
+        ) == .retryActivation &&
+        PasteTargetActivationCoordinator.nextAction(
+            isFrontmost: false,
+            attemptsRemaining: 49,
+            retryInterval: 5
+        ) == .wait &&
+        PasteTargetActivationCoordinator.nextAction(
+            isFrontmost: false,
+            attemptsRemaining: 0,
+            retryInterval: 5
+        ) == .fail,
+    "粘贴目标必须支持立即完成、激活重试、等待和最终失败四种状态"
+)
+
+print("通过：粘贴目标自适应激活重试")
 
 expect(
     PanelKeyCommand(keyCode: 53) == .dismiss &&

@@ -11,3 +11,14 @@ public enum PasteAttemptCoordinator {
         return hadAccessBeforeAttempt
     }
 }
+
+@MainActor
+public enum PasteEventPostingCoordinator {
+    public static func perform(
+        postPasteEvent: () -> Void,
+        onPasteEventPosted: () -> Void
+    ) {
+        postPasteEvent()
+        onPasteEventPosted()
+    }
+}
