@@ -13,11 +13,13 @@ public struct RibbonDeckView: View {
     @State private var libraryEditorState = LibraryEditorState()
     @State private var itemPendingDeletion: Clip?
     @State private var promptFilter: PromptLibraryFilter = .all
+    @State private var insertsIntoPrompt = false
     @StateObject private var launchAtLogin = LaunchAtLoginController()
     @AppStorage("funPaste.promptSortOrder") private var promptSortRawValue = PromptSortOrder.smart.rawValue
 
     private let compact: Bool
     private let dismissPanel: (() -> Void)?
+    private let pasteClip: ((Clip) -> Void)?
     private let prepareForPaste: (@MainActor @Sendable (@escaping @MainActor () -> Void) -> Void)?
     private let onUsePrompt: ((Clip) -> Void)?
 
@@ -25,12 +27,14 @@ public struct RibbonDeckView: View {
         store: ClipboardStore,
         compact: Bool = false,
         dismissPanel: (() -> Void)? = nil,
+        pasteClip: ((Clip) -> Void)? = nil,
         prepareForPaste: (@MainActor @Sendable (@escaping @MainActor () -> Void) -> Void)? = nil,
         onUsePrompt: ((Clip) -> Void)? = nil
     ) {
         self.store = store
         self.compact = compact
         self.dismissPanel = dismissPanel
+        self.pasteClip = pasteClip
         self.prepareForPaste = prepareForPaste
         self.onUsePrompt = onUsePrompt
     }
@@ -93,7 +97,8 @@ public struct RibbonDeckView: View {
             launchAtLogin.refresh()
         }
         .onChange(of: category) { _, _ in selectedID = visibleClips.first?.id }
-        .onReceive(NotificationCenter.default.publisher(for: .funPastePanelDidShow)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: .funPastePanelDidShow)) { notification in
+            insertsIntoPrompt = notification.object as? Bool ?? false
             resetForOpening()
         }
         .onExitCommand { dismissPanel?() }
@@ -293,25 +298,7 @@ public struct RibbonDeckView: View {
                             .frame(maxWidth: .infinity, minHeight: 180)
                     } else {
                         ForEach(visibleClips) { clip in
-                            ClipRow(
-                                clip: clip,
-                                isSelected: selectedID == clip.id,
-                                isPinned: store.isPinned(clip),
-                                canPin: clip.category == .recent || clip.category == .image,
-                                isPromptFavorite: clip.promptMetadata?.isFavorite == true,
-                                onPin: { togglePin(clip) },
-                                onPromptFavorite: { togglePromptFavorite(clip) },
-                                onEdit: { startEditingLibraryItem(clip) },
-                                onArchive: { archivePrompt(clip) },
-                                onRestore: { restorePrompt(clip) },
-                                onDelete: { itemPendingDeletion = clip }
-                            )
-                                .id(clip.id)
-                                .contentShape(Rectangle())
-                                .onTapGesture(count: 2) { activate(clip) }
-                                .onTapGesture { select(clip) }
-                                .pointingCursor()
-                                .accessibilityAddTraits(selectedID == clip.id ? .isSelected : [])
+                            historyRow(for: clip)
                         }
                     }
                 }
@@ -325,6 +312,39 @@ public struct RibbonDeckView: View {
             }
         }
         .frame(maxHeight: .infinity)
+    }
+
+    @ViewBuilder
+    private func historyRow(for clip: Clip) -> some View {
+        let row = ClipRow(
+            clip: clip,
+            isSelected: selectedID == clip.id,
+            isPinned: store.isPinned(clip),
+            canPin: !insertsIntoPrompt && (clip.category == .recent || clip.category == .image),
+            isPromptFavorite: clip.promptMetadata?.isFavorite == true,
+            onPin: { togglePin(clip) },
+            onPromptFavorite: { togglePromptFavorite(clip) },
+            onEdit: { startEditingLibraryItem(clip) },
+            onArchive: { archivePrompt(clip) },
+            onRestore: { restorePrompt(clip) },
+            onDelete: { itemPendingDeletion = clip }
+        )
+        .id(clip.id)
+        .contentShape(Rectangle())
+        .pointingCursor()
+        .accessibilityAddTraits(selectedID == clip.id ? .isSelected : [])
+
+        if insertsIntoPrompt {
+            Button(action: { select(clip) }) {
+                row
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(clip.title)
+        } else {
+            row
+                .onTapGesture(count: 2) { activate(clip) }
+                .onTapGesture { select(clip) }
+        }
     }
 
     private var promptFilterBar: some View {
@@ -519,11 +539,25 @@ public struct RibbonDeckView: View {
 
     private func select(_ clip: Clip) {
         selectedID = clip.id
-        if clip.category == .prompt { usePrompt(clip) }
+        switch ClipSelectionResolver.action(
+            for: clip.category,
+            insertsIntoPrompt: insertsIntoPrompt
+        ) {
+        case .select:
+            break
+        case .usePrompt:
+            usePrompt(clip)
+        case .paste:
+            pasteAndDismiss(clip)
+        }
     }
 
     private func pasteAndDismiss(_ clip: Clip) {
-        store.paste(clip, prepareForPaste: prepareForPaste ?? { $0() })
+        if let pasteClip {
+            pasteClip(clip)
+        } else {
+            store.paste(clip, prepareForPaste: prepareForPaste ?? { $0() })
+        }
     }
 
     private func togglePin(_ clip: Clip) {

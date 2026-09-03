@@ -11,3 +11,19 @@ public enum SelectionNavigator {
         return ((current ?? 0) - 1 + count) % count
     }
 }
+
+public enum ClipSelectionAction: Equatable, Sendable {
+    case select
+    case usePrompt
+    case paste
+}
+
+public enum ClipSelectionResolver {
+    public static func action(
+        for category: ClipCategory,
+        insertsIntoPrompt: Bool
+    ) -> ClipSelectionAction {
+        if insertsIntoPrompt { return .paste }
+        return category == .prompt ? .usePrompt : .select
+    }
+}

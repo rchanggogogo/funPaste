@@ -380,6 +380,16 @@ expect(
 print("通过：历史方向键选择")
 
 expect(
+    ClipSelectionResolver.action(for: .recent, insertsIntoPrompt: true) == .paste &&
+        ClipSelectionResolver.action(for: .prompt, insertsIntoPrompt: true) == .paste &&
+        ClipSelectionResolver.action(for: .recent, insertsIntoPrompt: false) == .select &&
+        ClipSelectionResolver.action(for: .prompt, insertsIntoPrompt: false) == .usePrompt,
+    "Prompt 历史插入模式必须单击即粘贴，普通浏览模式仍保留选择和打开 Prompt 行为"
+)
+
+print("通过：Prompt 历史插入模式单击行为")
+
+expect(
     QuickPanelController.usesNonactivatingPanel == false,
     "侧栏必须使用可获焦点面板，才能可靠接收键盘输入"
 )
@@ -419,6 +429,62 @@ expect(
 )
 
 print("通过：粘贴目标焦点恢复")
+
+var internalPasteSteps: [String] = []
+let didPerformInternalPaste = InternalPasteCoordinator.perform(
+    restoreEditor: {
+        internalPasteSteps.append("恢复编辑框")
+        return true
+    },
+    insert: {
+        internalPasteSteps.append("同步插入")
+        return true
+    }
+)
+expect(
+    didPerformInternalPaste && internalPasteSteps == ["恢复编辑框", "同步插入"],
+    "Prompt 内部插入必须同步完成，不能经过剪贴板、外部应用激活或 CGEvent"
+)
+
+print("通过：Prompt 编辑器同步历史粘贴")
+
+let internalPasteWindow = NSWindow(
+    contentRect: NSRect(x: 0, y: 0, width: 320, height: 160),
+    styleMask: [.titled],
+    backing: .buffered,
+    defer: false
+)
+let internalPasteTextView = NSTextView(frame: internalPasteWindow.contentView!.bounds)
+internalPasteTextView.string = "前后"
+internalPasteTextView.setSelectedRange(NSRange(location: 1, length: 0))
+internalPasteWindow.contentView = internalPasteTextView
+let promptComposerSession = PromptComposerSession(prompt: englishPrompt)
+promptComposerSession.state.featureDescription = internalPasteTextView.string
+let didInsertIntoRealTextView = InternalPasteCoordinator.perform(
+    restoreEditor: {
+        internalPasteWindow.makeFirstResponder(internalPasteTextView)
+    },
+    insert: {
+        promptComposerSession.insert(
+            "历史内容",
+            replacementRange: internalPasteTextView.selectedRange()
+        )
+    }
+)
+expect(
+    didInsertIntoRealTextView &&
+        internalPasteWindow.firstResponder === internalPasteTextView &&
+        promptComposerSession.state.featureDescription == "前历史内容后",
+    "真实 NSTextView 恢复焦点后必须把历史文本同步到 Prompt 状态"
+)
+expect(
+    !promptComposerSession.insert("不应插入", replacementRange: NSRange(location: 999, length: 0)) &&
+        promptComposerSession.state.featureDescription == "前历史内容后",
+    "Prompt 选区失效时必须取消内部插入，不能改写字段或回退到外部粘贴"
+)
+internalPasteWindow.orderOut(nil)
+
+print("通过：真实 Prompt 文本框历史插入")
 
 var pasteAccessRequestCount = 0
 let deniedPasteAuthorization = PasteEventAuthorization(

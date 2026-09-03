@@ -34,7 +34,11 @@ public final class QuickPanelController {
     private var didBecomeActiveObserver: NSObjectProtocol?
     private var outsideClickMonitor: Any?
     private var localKeyMonitor: Any?
+    private var localMouseMonitor: Any?
+    private weak var internalPasteTextView: NSTextView?
+    private var isSelectingHistoryForPromptEditor = false
     private var isWaitingToPresent = false
+    private var presentationActivationAttempts = 0
     private var pendingPanelOrderOutTask: Task<Void, Never>?
 
     public init(store: ClipboardStore) {
@@ -75,10 +79,19 @@ public final class QuickPanelController {
             self.handlePanelKeyCommand(command)
             return nil
         }
+        localMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
+            guard let self else { return event }
+            if event.window !== self.panel {
+                self.rememberFocusedInternalTextTarget()
+            }
+            return event
+        }
     }
 
     public func toggle() {
-        if panel?.isVisible == true {
+        if promptComposerController.isVisible, panel?.isKeyWindow != true {
+            showPasteHistoryForPromptEditor()
+        } else if panel?.isVisible == true {
             dismiss()
         } else {
             show()
@@ -86,6 +99,12 @@ public final class QuickPanelController {
     }
 
     public func show() {
+        isSelectingHistoryForPromptEditor = false
+        showPanel()
+    }
+
+    private func showPanel() {
+        rememberFocusedInternalTextTarget()
         rememberPasteTarget(NSWorkspace.shared.frontmostApplication)
         panelLogger.notice("开始显示面板，目标进程：\(self.pasteTargetState.processIdentifier ?? -1)")
 
@@ -107,9 +126,10 @@ public final class QuickPanelController {
         }
 
         isWaitingToPresent = true
+        presentationActivationAttempts = 0
         if Self.requiresApplicationActivation {
             NSApp.setActivationPolicy(Self.panelActivationPolicy)
-            NSRunningApplication.current.activate()
+            requestApplicationActivation()
         }
 
         if NSApp.isActive {
@@ -124,6 +144,16 @@ public final class QuickPanelController {
 
     public func dismiss() {
         isWaitingToPresent = false
+        if internalPasteTextView?.window !== panel, restoreInternalPasteTarget() {
+            isSelectingHistoryForPromptEditor = false
+            pendingPanelOrderOutTask?.cancel()
+            pendingPanelOrderOutTask = nil
+            panel?.orderOut(nil)
+            panel?.alphaValue = 1
+            return
+        }
+        isSelectingHistoryForPromptEditor = false
+        internalPasteTextView = nil
         promptComposerController.close()
         pendingPanelOrderOutTask?.cancel()
         pendingPanelOrderOutTask = nil
@@ -153,6 +183,7 @@ public final class QuickPanelController {
 
     private func prepareForPaste(_ completion: @escaping @MainActor () -> Void) {
         isWaitingToPresent = false
+        internalPasteTextView = nil
         promptComposerController.close(
             behavior: .prepareForPaste,
             fadeDuration: Self.pasteFadeDuration
@@ -184,6 +215,27 @@ public final class QuickPanelController {
                 self?.waitForPasteTarget(attemptsRemaining: 50, completion: completion)
             }
         )
+    }
+
+    private func rememberFocusedInternalTextTarget() {
+        if let textView = promptComposerController.focusedEditableTextView() {
+            internalPasteTextView = textView
+        }
+    }
+
+    @discardableResult
+    private func restoreInternalPasteTarget() -> Bool {
+        guard let textView = internalPasteTextView,
+              textView.isEditable,
+              let targetWindow = textView.window,
+              targetWindow.isVisible
+        else {
+            internalPasteTextView = nil
+            return false
+        }
+        internalPasteTextView = nil
+        targetWindow.makeKeyAndOrderFront(nil)
+        return targetWindow.makeFirstResponder(textView)
     }
 
     private func waitForPasteTarget(
@@ -261,6 +313,8 @@ public final class QuickPanelController {
         panel.contentView = NSHostingView(
             rootView: RibbonDeckView(store: store, compact: true, dismissPanel: { [weak self] in
                 self?.dismiss()
+            }, pasteClip: { [weak self] clip in
+                self?.pasteFromPanel(clip)
             }, prepareForPaste: { [weak self] completion in
                 self?.prepareForPaste(completion)
             }, onUsePrompt: { [weak self] prompt in
@@ -275,6 +329,9 @@ public final class QuickPanelController {
         promptComposerController.show(
             prompt: prompt,
             onCancel: {},
+            onShowHistory: { [weak self] in
+                self?.showPasteHistoryForPromptEditor()
+            },
             onCopy: { [weak self] preparedPrompt in
                 guard let self else { return }
                 self.store.copy(preparedPrompt)
@@ -284,6 +341,7 @@ public final class QuickPanelController {
             },
             onPaste: { [weak self] preparedPrompt in
                 guard let self else { return }
+                self.internalPasteTextView = nil
                 self.promptComposerController.close(
                     behavior: .prepareForPaste,
                     fadeDuration: Self.pasteFadeDuration
@@ -307,12 +365,83 @@ public final class QuickPanelController {
         )
     }
 
+    private func showPasteHistoryForPromptEditor() {
+        rememberFocusedInternalTextTarget()
+        isSelectingHistoryForPromptEditor = true
+        panelLogger.notice("进入 Prompt 历史插入模式")
+        showPanel()
+    }
+
+    private func pasteFromPanel(_ clip: Clip) {
+        guard isSelectingHistoryForPromptEditor else {
+            panelLogger.notice("使用普通外部粘贴路径")
+            store.paste(clip, prepareForPaste: { [weak self] completion in
+                self?.prepareForPaste(completion)
+            })
+            return
+        }
+
+        let hasInternalEditor = internalPasteTextView?.isEditable == true &&
+            internalPasteTextView?.window?.isVisible == true
+        guard hasInternalEditor, let textView = internalPasteTextView else {
+            panelLogger.error("Prompt 编辑框已失效，取消历史插入")
+            store.showFeedback(FunPasteLocalization.string("feedback.promptEditorUnavailable"))
+            return
+        }
+
+        let targetWindow = textView.window
+        let replacementRange = textView.selectedRange()
+        let didPaste = InternalPasteCoordinator.perform(
+            restoreEditor: { [weak self] in
+                guard let self else { return false }
+                if targetWindow !== self.panel {
+                    self.pendingPanelOrderOutTask?.cancel()
+                    self.pendingPanelOrderOutTask = nil
+                    self.panel?.orderOut(nil)
+                    self.panel?.alphaValue = 1
+                }
+                return self.restoreInternalPasteTarget()
+            },
+            insert: { [weak self] in
+                self?.promptComposerController.insertHistoryContent(
+                    clip.content,
+                    replacementRange: replacementRange
+                ) == true
+            }
+        )
+        if didPaste {
+            isSelectingHistoryForPromptEditor = false
+            panelLogger.notice("Prompt 历史内容已同步插入")
+            store.showFeedback(FunPasteLocalization.format("feedback.pasted", clip.title))
+        } else {
+            isSelectingHistoryForPromptEditor = false
+            panelLogger.error("Prompt 编辑框恢复失败")
+            store.showFeedback(FunPasteLocalization.string("feedback.promptEditorUnavailable"))
+        }
+    }
+
     private func presentPanelAfterActivation() {
         guard isWaitingToPresent, let panel else { return }
+        if Self.requiresApplicationActivation, !NSApp.isActive, presentationActivationAttempts < 10 {
+            presentationActivationAttempts += 1
+            requestApplicationActivation()
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(50))
+                self?.presentPanelAfterActivation()
+            }
+            return
+        }
         isWaitingToPresent = false
         panel.makeKeyAndOrderFront(nil)
         panelLogger.notice("面板已成为键盘窗口：\(panel.isKeyWindow)")
-        NotificationCenter.default.post(name: .funPastePanelDidShow, object: nil)
+        NotificationCenter.default.post(
+            name: .funPastePanelDidShow,
+            object: isSelectingHistoryForPromptEditor
+        )
+    }
+
+    private func requestApplicationActivation() {
+        NSApp.activate()
     }
 
     private func handlePanelKeyCommand(_ command: PanelKeyCommand) {

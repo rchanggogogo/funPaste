@@ -15,12 +15,14 @@ public final class PromptComposerController: NSObject, NSWindowDelegate {
     public private(set) var isVisible = false
 
     private var panel: NSPanel?
+    private var session: PromptComposerSession?
     private var onWindowClosed: (() -> Void)?
     private var pendingOrderOutTask: Task<Void, Never>?
 
     public func show(
         prompt: Clip,
         onCancel: @escaping () -> Void,
+        onShowHistory: @escaping () -> Void,
         onCopy: @escaping (Clip) -> Void,
         onPaste: @escaping (Clip) -> Void,
         onWindowClosed: @escaping () -> Void
@@ -30,13 +32,16 @@ public final class PromptComposerController: NSObject, NSWindowDelegate {
         pendingOrderOutTask = nil
         panel.alphaValue = 1
         self.onWindowClosed = onWindowClosed
+        let session = PromptComposerSession(prompt: prompt)
+        self.session = session
         panel.contentView = NSHostingView(
             rootView: PromptComposerView(
-                prompt: prompt,
+                session: session,
                 onCancel: { [weak self] in
                     self?.close()
                     onCancel()
                 },
+                onShowHistory: onShowHistory,
                 onCopy: onCopy,
                 onPaste: onPaste
             )
@@ -64,6 +69,21 @@ public final class PromptComposerController: NSObject, NSWindowDelegate {
         isVisible = false
         onWindowClosed?()
         onWindowClosed = nil
+    }
+
+    public func focusedEditableTextView() -> NSTextView? {
+        guard isVisible,
+              let textView = panel?.firstResponder as? NSTextView,
+              textView.isEditable
+        else {
+            return nil
+        }
+        return textView
+    }
+
+    @discardableResult
+    public func insertHistoryContent(_ content: String, replacementRange: NSRange) -> Bool {
+        session?.insert(content, replacementRange: replacementRange) == true
     }
 
     private func orderOutPanel(fadeDuration: TimeInterval) {
