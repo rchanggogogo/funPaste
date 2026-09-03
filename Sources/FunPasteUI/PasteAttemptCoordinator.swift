@@ -13,6 +13,18 @@ public enum PasteAttemptCoordinator {
 }
 
 @MainActor
+public enum InternalPasteCoordinator {
+    @discardableResult
+    public static func perform(
+        restoreEditor: () -> Bool,
+        insert: () -> Bool
+    ) -> Bool {
+        guard restoreEditor() else { return false }
+        return insert()
+    }
+}
+
+@MainActor
 public enum PasteEventPostingCoordinator {
     public static func perform(
         postPasteEvent: () -> Void,

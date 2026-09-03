@@ -1,20 +1,38 @@
 import SwiftUI
 
 public struct PromptComposerView: View {
-    @State private var state: PromptComposerState
+    @StateObject private var session: PromptComposerSession
+    @FocusState private var focusedField: PromptComposerField?
 
     private let onCancel: () -> Void
+    private let onShowHistory: (() -> Void)?
     private let onCopy: (Clip) -> Void
     private let onPaste: (Clip) -> Void
 
     public init(
         prompt: Clip,
         onCancel: @escaping () -> Void,
+        onShowHistory: (() -> Void)? = nil,
         onCopy: @escaping (Clip) -> Void,
         onPaste: @escaping (Clip) -> Void
     ) {
-        _state = State(initialValue: PromptComposerState(prompt: prompt))
+        _session = StateObject(wrappedValue: PromptComposerSession(prompt: prompt))
         self.onCancel = onCancel
+        self.onShowHistory = onShowHistory
+        self.onCopy = onCopy
+        self.onPaste = onPaste
+    }
+
+    init(
+        session: PromptComposerSession,
+        onCancel: @escaping () -> Void,
+        onShowHistory: (() -> Void)? = nil,
+        onCopy: @escaping (Clip) -> Void,
+        onPaste: @escaping (Clip) -> Void
+    ) {
+        _session = StateObject(wrappedValue: session)
+        self.onCancel = onCancel
+        self.onShowHistory = onShowHistory
         self.onCopy = onCopy
         self.onPaste = onPaste
     }
@@ -38,6 +56,10 @@ public struct PromptComposerView: View {
         .frame(minWidth: 600, minHeight: 520)
         .background(FunPasteTheme.ink)
         .preferredColorScheme(.dark)
+        .onAppear { focusedField = session.focusedField }
+        .onChange(of: focusedField) { _, field in
+            if let field { session.focusedField = field }
+        }
     }
 
     private var header: some View {
@@ -51,9 +73,9 @@ public struct PromptComposerView: View {
                 Text(FunPasteLocalization.string("promptComposer.title"))
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(FunPasteTheme.lilac)
-                Text(state.prompt.title)
+                Text(session.state.prompt.title)
                     .font(.title3.bold())
-                Text(state.prompt.source)
+                Text(session.state.prompt.source)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -68,7 +90,7 @@ public struct PromptComposerView: View {
             title: FunPasteLocalization.string("promptComposer.templateContext"),
             description: FunPasteLocalization.string("promptComposer.templateDescription")
         ) {
-            Text(state.prompt.content)
+            Text(session.state.prompt.content)
                 .font(.body)
                 .foregroundStyle(.primary.opacity(0.9))
                 .textSelection(.enabled)
@@ -79,24 +101,26 @@ public struct PromptComposerView: View {
     }
 
     @ViewBuilder private var variableEditors: some View {
-        if state.requiresFeatureDescription {
+        if session.state.requiresFeatureDescription {
             editorSection(
                 title: FunPasteLocalization.string("promptComposer.featureDescription"),
                 description: FunPasteLocalization.string("promptComposer.featureVariable")
             ) {
                 multilineEditor(
-                    text: $state.featureDescription,
+                    text: stateBinding(\.featureDescription),
+                    field: .featureDescription,
                     guidance: FunPasteLocalization.string("promptComposer.featureGuidance")
                 )
             }
         }
-        if state.requiresTechnicalConstraint {
+        if session.state.requiresTechnicalConstraint {
             editorSection(
                 title: FunPasteLocalization.string("promptComposer.technicalConstraints"),
                 description: FunPasteLocalization.string("promptComposer.technicalVariable")
             ) {
                 multilineEditor(
-                    text: $state.technicalConstraint,
+                    text: stateBinding(\.technicalConstraint),
+                    field: .technicalConstraint,
                     guidance: FunPasteLocalization.string("promptComposer.technicalGuidance")
                 )
             }
@@ -109,7 +133,8 @@ public struct PromptComposerView: View {
             description: FunPasteLocalization.string("promptComposer.additionalDescription")
         ) {
             multilineEditor(
-                text: $state.additionalContext,
+                text: stateBinding(\.additionalContext),
+                field: .additionalContext,
                 guidance: FunPasteLocalization.string("promptComposer.additionalGuidance")
             )
         }
@@ -119,12 +144,12 @@ public struct PromptComposerView: View {
         editorSection(
             title: FunPasteLocalization.string("promptComposer.preview"),
             description: FunPasteLocalization.string(
-                state.canSubmit ? "promptComposer.previewReady" : "promptComposer.previewIncomplete"
+                session.state.canSubmit ? "promptComposer.previewReady" : "promptComposer.previewIncomplete"
             )
         ) {
-            Text(state.resolvedContent)
+            Text(session.state.resolvedContent)
                 .font(.body.monospaced())
-                .foregroundStyle(state.canSubmit ? Color.primary.opacity(0.9) : Color.secondary)
+                .foregroundStyle(session.state.canSubmit ? Color.primary.opacity(0.9) : Color.secondary)
                 .textSelection(.enabled)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(14)
@@ -137,14 +162,22 @@ public struct PromptComposerView: View {
             Button(FunPasteLocalization.string("common.cancel"), action: onCancel)
                 .keyboardShortcut(.cancelAction)
             Spacer()
-            Button(FunPasteLocalization.string("common.copy")) { onCopy(state.preparedClip) }
-                .disabled(!state.canSubmit)
-            Button(FunPasteLocalization.string("promptComposer.generateAndPaste")) { onPaste(state.preparedClip) }
+            if let onShowHistory {
+                Button(action: onShowHistory) {
+                    Label(
+                        FunPasteLocalization.string("promptComposer.insertFromHistory"),
+                        systemImage: "clock.arrow.circlepath"
+                    )
+                }
+            }
+            Button(FunPasteLocalization.string("common.copy")) { onCopy(session.state.preparedClip) }
+                .disabled(!session.state.canSubmit)
+            Button(FunPasteLocalization.string("promptComposer.generateAndPaste")) { onPaste(session.state.preparedClip) }
                 .buttonStyle(.borderedProminent)
                 .tint(FunPasteTheme.accent)
                 .foregroundStyle(FunPasteTheme.ink)
                 .keyboardShortcut(.return, modifiers: [.command])
-                .disabled(!state.canSubmit)
+                .disabled(!session.state.canSubmit)
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
@@ -164,13 +197,18 @@ public struct PromptComposerView: View {
         }
     }
 
-    private func multilineEditor(text: Binding<String>, guidance: String) -> some View {
+    private func multilineEditor(
+        text: Binding<String>,
+        field: PromptComposerField,
+        guidance: String
+    ) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(FunPasteLocalization.format("promptComposer.guidance", guidance))
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .allowsHitTesting(false)
             TextEditor(text: text)
+                .focused($focusedField, equals: field)
                 .font(.body)
                 .scrollContentBackground(.hidden)
                 .padding(6)
@@ -180,5 +218,12 @@ public struct PromptComposerView: View {
         .frame(minHeight: 120)
         .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(.white.opacity(0.12)))
+    }
+
+    private func stateBinding(_ keyPath: WritableKeyPath<PromptComposerState, String>) -> Binding<String> {
+        Binding(
+            get: { session.state[keyPath: keyPath] },
+            set: { session.state[keyPath: keyPath] = $0 }
+        )
     }
 }
